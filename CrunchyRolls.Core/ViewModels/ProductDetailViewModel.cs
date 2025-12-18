@@ -1,6 +1,6 @@
-﻿using CrunchyScroll.Core.Helpers;
-using CrunchyScroll.Core.Models;
-using CrunchyScroll.Core.Services;
+﻿using CrunchyRolls.Core.Helpers;
+using CrunchyRolls.Core.Models;
+using CrunchyRolls.Core.Services;
 using System.Windows.Input;
 using static System.Net.Mime.MediaTypeNames;
 
