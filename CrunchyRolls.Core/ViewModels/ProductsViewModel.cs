@@ -147,13 +147,13 @@ namespace CrunchyRolls.Core.ViewModels
             if (product == null)
                 return;
 
-            // Navigate to product detail page
+            // Navigate to product detail page met // prefix voor absolute routing
             var navigationParameter = new Dictionary<string, object>
             {
                 { "Product", product }
             };
 
-            await Shell.Current.GoToAsync($"ProductDetailPage", navigationParameter);
+            await Shell.Current.GoToAsync($"//ProductDetailPage", navigationParameter);
         }
 
         private async void OnAddToCart(Product product)

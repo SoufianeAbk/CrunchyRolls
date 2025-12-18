@@ -72,8 +72,8 @@ namespace CrunchyRolls.Core.ViewModels
                 $"{Quantity}x {Product.Name} toegevoegd aan winkelwagen",
                 "OK");
 
-            // Ga terug naar producten pagina
-            await Shell.Current.GoToAsync("..");
+            // Ga terug naar producten pagina (met // prefix)
+            await Shell.Current.GoToAsync("//ProductsPage");
         }
 
         // Helper method for dialog

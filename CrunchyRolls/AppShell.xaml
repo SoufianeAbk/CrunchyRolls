@@ -33,4 +33,9 @@
             Route="OrderHistoryPage"/>
     </TabBar>
 
+    <ShellContent 
+        Title="Productdetails"
+        ContentTemplate="{DataTemplate views:ProductDetailPage}"
+        Route="ProductDetailPage"/>
+
 </Shell>
