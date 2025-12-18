@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Shell
+    x:Class="CrunchyRolls.AppShell"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:local="clr-namespace:CrunchyRolls"
+    xmlns:views="clr-namespace:CrunchyRolls.Views"
+    FlyoutBehavior="Disabled">
+
+    <TabBar>
+        <!-- Home Tab -->
+        <ShellContent 
+            Title="Home"
+            ContentTemplate="{DataTemplate local:MainPage}"
+            Route="MainPage"/>
+
+        <!-- Products Tab -->
+        <ShellContent 
+            Title="Producten"
+            ContentTemplate="{DataTemplate views:ProductsPage}"
+            Route="ProductsPage"/>
+
+        <!-- Cart Tab -->
+        <ShellContent 
+            Title="Winkelwagen"
+            ContentTemplate="{DataTemplate views:OrderPage}"
+            Route="OrderPage"/>
+
+        <!-- Order History Tab -->
+        <ShellContent 
+            Title="Bestellingen"
+            ContentTemplate="{DataTemplate views:OrderHistoryPage}"
+            Route="OrderHistoryPage"/>
+    </TabBar>
+
+</Shell>

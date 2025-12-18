@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:CrunchyRolls.ViewModels"
+             xmlns:models="clr-namespace:CrunchyRolls.Models"
+             x:Class="CrunchyRolls.Views.OrderHistoryPage"
+             x:DataType="viewmodels:OrderHistoryViewModel"
+             Title="{Binding Title}">
+
+    <Grid RowDefinitions="Auto,*" Padding="15">
+
+        <!-- Statistics -->
+        <VerticalStackLayout Grid.Row="0" Spacing="10" Margin="0,0,0,20">
+            <Label Text="Je bestellingen"
+                   FontSize="28"
+                   FontAttributes="Bold"/>
+            <HorizontalStackLayout Spacing="20">
+                <VerticalStackLayout>
+                    <Label Text="{Binding TotalOrders}"
+                           FontSize="24"
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource Primary}"/>
+                    <Label Text="Bestellingen"
+                           FontSize="14"
+                           TextColor="{StaticResource Gray600}"/>
+                </VerticalStackLayout>
+                <VerticalStackLayout>
+                    <Label Text="{Binding TotalSpent, StringFormat='€{0:F2}'}"
+                           FontSize="24"
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource Primary}"/>
+                    <Label Text="Totaal besteed"
+                           FontSize="14"
+                           TextColor="{StaticResource Gray600}"/>
+                </VerticalStackLayout>
+            </HorizontalStackLayout>
+        </VerticalStackLayout>
+
+        <!-- Orders list -->
+        <RefreshView Grid.Row="1" 
+                     IsRefreshing="{Binding IsBusy}"
+                     Command="{Binding RefreshCommand}">
+            <CollectionView ItemsSource="{Binding Orders}">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:Order">
+                        <Border StrokeThickness="1" Padding="15" Margin="0,0,0,10">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="10"/>
+                            </Border.StrokeShape>
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer 
+                                    Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:OrderHistoryViewModel}}, Path=OrderTappedCommand}"
+                                    CommandParameter="{Binding .}"/>
+                            </Border.GestureRecognizers>
+
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                                <!-- Order info -->
+                                <VerticalStackLayout Grid.Column="0" Spacing="8">
+                                    <HorizontalStackLayout Spacing="10">
+                                        <Label Text="Bestelling #"
+                                               FontAttributes="Bold"/>
+                                        <Label Text="{Binding Id}"
+                                               FontAttributes="Bold"
+                                               TextColor="{StaticResource Primary}"/>
+                                    </HorizontalStackLayout>
+
+                                    <Label Text="{Binding OrderDate, StringFormat='Datum: {0:dd/MM/yyyy HH:mm}'}"
+                                           FontSize="14"
+                                           TextColor="{StaticResource Gray600}"/>
+
+                                    <Label Text="{Binding TotalAmount, StringFormat='Totaal: €{0:F2}'}"
+                                           FontSize="16"
+                                           FontAttributes="Bold"
+                                           TextColor="{StaticResource Primary}"/>
+
+                                    <Label Text="{Binding Status, StringFormat='{0}'}"
+                                           FontSize="12"
+                                           Padding="8,4"
+                                           BackgroundColor="{Binding Status, Converter={StaticResource StatusToColorConverter}}"
+                                           TextColor="White"
+                                           WidthRequest="120"
+                                           HorizontalTextAlignment="Center"/>
+                                </VerticalStackLayout>
+
+                                <!-- Cancel button (only if not delivered or cancelled) -->
+                                <Button Grid.Column="1"
+                                        Text="Annuleren"
+                                        FontSize="12"
+                                        Padding="10,8"
+                                        Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:OrderHistoryViewModel}}, Path=CancelOrderCommand}"
+                                        CommandParameter="{Binding .}"
+                                        BackgroundColor="Transparent"
+                                        TextColor="Red"
+                                        BorderColor="Red"
+                                        BorderWidth="1"
+                                        IsVisible="{Binding Status, Converter={StaticResource StatusToCancelVisibilityConverter}}"
+                                        VerticalOptions="Center"/>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+                <CollectionView.EmptyView>
+                    <VerticalStackLayout HorizontalOptions="Center" 
+                                       VerticalOptions="Center"
+                                       Spacing="10">
+                        <Label Text="📦"
+                               FontSize="64"
+                               HorizontalOptions="Center"/>
+                        <Label Text="Geen bestellingen geplaatst"
+                               FontSize="18"
+                               TextColor="{StaticResource Gray600}"
+                               HorizontalOptions="Center"/>
+                    </VerticalStackLayout>
+                </CollectionView.EmptyView>
+            </CollectionView>
+        </RefreshView>
+
+        <!-- Loading indicator -->
+        <ActivityIndicator Grid.Row="1"
+                         IsRunning="{Binding IsBusy}"
+                         IsVisible="{Binding IsBusy}"
+                         HorizontalOptions="Center"
+                         VerticalOptions="Center"/>
+    </Grid>
+</ContentPage>

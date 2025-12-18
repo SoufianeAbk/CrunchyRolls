@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:CrunchyRolls.ViewModels"
+             xmlns:models="clr-namespace:CrunchyRolls.Models"
+             x:Class="CrunchyRolls.Views.OrderPage"
+             x:DataType="viewmodels:OrderViewModel"
+             Title="{Binding Title}">
+
+    <ScrollView>
+        <Grid RowDefinitions="Auto,*,Auto" Padding="20">
+
+            <!-- Cart header -->
+            <VerticalStackLayout Grid.Row="0" Spacing="10" Margin="0,0,0,20">
+                <Label Text="Jouw winkelwagen"
+                       FontSize="28"
+                       FontAttributes="Bold"/>
+                <HorizontalStackLayout Spacing="5">
+                    <Label Text="{Binding CartItemCount}"
+                           FontSize="16"
+                           FontAttributes="Bold"/>
+                    <Label Text="artikelen"
+                           FontSize="16"/>
+                    <Label Text="-"
+                           FontSize="16"
+                           Margin="10,0"/>
+                    <Label Text="{Binding CartTotal, StringFormat='€{0:F2}'}"
+                           FontSize="16"
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource Primary}"/>
+                </HorizontalStackLayout>
+            </VerticalStackLayout>
+
+            <!-- Cart items -->
+            <VerticalStackLayout Grid.Row="1" Spacing="15">
+
+                <CollectionView ItemsSource="{Binding CartItems}">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="models:OrderItem">
+                            <Border StrokeThickness="1" Padding="15" Margin="0,0,0,10">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="10"/>
+                                </Border.StrokeShape>
+
+                                <Grid ColumnDefinitions="80,*,Auto" ColumnSpacing="15">
+
+                                    <!-- Product image -->
+                                    <Border Grid.Column="0"
+                                            Stroke="{StaticResource Gray300}"
+                                            StrokeThickness="1"
+                                            Padding="2">
+                                        <Border.StrokeShape>
+                                            <RoundRectangle CornerRadius="5"/>
+                                        </Border.StrokeShape>
+                                        <Image Source="{Binding Product.ImageUrl}"
+                                               Aspect="AspectFill"
+                                               WidthRequest="80"
+                                               HeightRequest="80"/>
+                                    </Border>
+
+                                    <!-- Product info -->
+                                    <VerticalStackLayout Grid.Column="1" Spacing="5">
+                                        <Label Text="{Binding Product.Name}"
+                                               FontSize="18"
+                                               FontAttributes="Bold"/>
+                                        <Label Text="{Binding UnitPrice, StringFormat='€{0:F2}'}"
+                                               FontSize="14"
+                                               TextColor="{StaticResource Gray600}"/>
+                                        <Label Text="{Binding Quantity, StringFormat='Aantal: {0}'}"
+                                               FontSize="14"/>
+                                        <Label Text="{Binding SubTotal, StringFormat='Subtotaal: €{0:F2}'}"
+                                               FontSize="16"
+                                               FontAttributes="Bold"
+                                               TextColor="{StaticResource Primary}"/>
+                                    </VerticalStackLayout>
+
+                                    <!-- Remove button -->
+                                    <Button Grid.Column="2"
+                                            Text="🗑️"
+                                            FontSize="20"
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:OrderViewModel}}, Path=RemoveItemCommand}"
+                                            CommandParameter="{Binding .}"
+                                            BackgroundColor="Transparent"
+                                            TextColor="Red"
+                                            WidthRequest="40"
+                                            HeightRequest="40"/>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                    <CollectionView.EmptyView>
+                        <VerticalStackLayout HorizontalOptions="Center" 
+                                           VerticalOptions="Center"
+                                           Spacing="10">
+                            <Label Text="🛒"
+                                   FontSize="64"
+                                   HorizontalOptions="Center"/>
+                            <Label Text="Je winkelwagen is leeg"
+                                   FontSize="18"
+                                   TextColor="{StaticResource Gray600}"
+                                   HorizontalOptions="Center"/>
+                        </VerticalStackLayout>
+                    </CollectionView.EmptyView>
+                </CollectionView>
+
+                <!-- Customer info form -->
+                <VerticalStackLayout Spacing="15" Margin="0,20,0,0"
+                                   IsVisible="{Binding CartItems.Count, Converter={StaticResource IsNotZeroConverter}}">
+
+                    <Label Text="Bezorggegevens"
+                           FontSize="22"
+                           FontAttributes="Bold"/>
+
+                    <Entry Placeholder="Naam"
+                           Text="{Binding CustomerName}"/>
+
+                    <Entry Placeholder="Email"
+                           Keyboard="Email"
+                           Text="{Binding CustomerEmail}"/>
+
+                    <Editor Placeholder="Bezorgadres"
+                            HeightRequest="100"
+                            Text="{Binding DeliveryAddress}"/>
+
+                </VerticalStackLayout>
+            </VerticalStackLayout>
+
+            <!-- Action buttons -->
+            <VerticalStackLayout Grid.Row="2" Spacing="10" Margin="0,20,0,0">
+                <Button Text="Bestelling plaatsen"
+                        Command="{Binding PlaceOrderCommand}"
+                        FontSize="18"
+                        Padding="15"
+                        IsEnabled="{Binding IsNotBusy}"/>
+
+                <Button Text="Winkelwagen leegmaken"
+                        Command="{Binding ClearCartCommand}"
+                        BackgroundColor="Transparent"
+                        TextColor="Red"
+                        BorderColor="Red"
+                        BorderWidth="1"
+                        IsEnabled="{Binding IsNotBusy}"/>
+            </VerticalStackLayout>
+
+            <!-- Loading indicator -->
+            <ActivityIndicator Grid.Row="1"
+                             IsRunning="{Binding IsBusy}"
+                             IsVisible="{Binding IsBusy}"
+                             HorizontalOptions="Center"
+                             VerticalOptions="Center"/>
+        </Grid>
+    </ScrollView>
+</ContentPage>

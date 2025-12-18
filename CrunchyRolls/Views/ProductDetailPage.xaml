@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:CrunchyRolls.ViewModels"
+             x:Class="CrunchyRolls.Views.ProductDetailPage"
+             x:DataType="viewmodels:ProductDetailViewModel"
+             Title="{Binding Title}">
+
+    <ScrollView>
+        <Grid RowDefinitions="300,*" Padding="20">
+
+            <!-- Product afbeelding met Border -->
+            <Border Grid.Row="0" 
+                    Stroke="{StaticResource Primary}"
+                    StrokeThickness="2"
+                    Padding="0">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="15"/>
+                </Border.StrokeShape>
+                <Image Source="{Binding Product.ImageUrl}"
+                       Aspect="AspectFill"
+                       HeightRequest="300"/>
+            </Border>
+
+            <!-- Product details -->
+            <VerticalStackLayout Grid.Row="1" Spacing="15" Margin="0,20,0,0">
+
+                <Label Text="{Binding Product.Name}"
+                       FontSize="28"
+                       FontAttributes="Bold"/>
+
+                <Label Text="{Binding Product.Description}"
+                       FontSize="16"
+                       TextColor="{StaticResource Gray600}"/>
+
+                <Label Text="{Binding Product.Price, StringFormat='€{0:F2}'}"
+                       FontSize="32"
+                       FontAttributes="Bold"
+                       TextColor="{StaticResource Primary}"/>
+
+                <!-- Voorraad info -->
+                <HorizontalStackLayout Spacing="10">
+                    <Label Text="Voorraad:"
+                           FontSize="16"/>
+                    <Label Text="{Binding Product.StockQuantity}"
+                           FontSize="16"
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource Primary}"/>
+                    <Label Text="stuks"
+                           FontSize="16"/>
+                </HorizontalStackLayout>
+
+                <!-- Voorraad status -->
+                <Label Text="✓ Op voorraad"
+                       TextColor="Green"
+                       FontSize="16"
+                       FontAttributes="Bold"
+                       IsVisible="{Binding Product.IsInStock}"/>
+                <Label Text="✗ Niet op voorraad"
+                       TextColor="Red"
+                       FontSize="16"
+                       FontAttributes="Bold"
+                       IsVisible="{Binding Product.IsInStock, Converter={StaticResource InvertedBoolConverter}}"/>
+
+                <!-- Aantal selector -->
+                <Label Text="Aantal:"
+                       FontSize="18"
+                       FontAttributes="Bold"
+                       Margin="0,20,0,0"/>
+
+                <HorizontalStackLayout Spacing="15" 
+                                      HorizontalOptions="Start">
+                    <Button Text="-"
+                            Command="{Binding DecreaseQuantityCommand}"
+                            WidthRequest="50"
+                            HeightRequest="50"
+                            FontSize="24"
+                            IsEnabled="{Binding Product.IsInStock}"/>
+
+                    <Label Text="{Binding Quantity}"
+                           FontSize="32"
+                           FontAttributes="Bold"
+                           VerticalOptions="Center"
+                           MinimumWidthRequest="60"
+                           HorizontalTextAlignment="Center"/>
+
+                    <Button Text="+"
+                            Command="{Binding IncreaseQuantityCommand}"
+                            WidthRequest="50"
+                            HeightRequest="50"
+                            FontSize="24"
+                            IsEnabled="{Binding Product.IsInStock}"/>
+                </HorizontalStackLayout>
+
+                <!-- Toevoegen aan winkelwagen button -->
+                <Button Text="Toevoegen aan winkelwagen"
+                        Command="{Binding AddToCartCommand}"
+                        FontSize="18"
+                        Padding="15"
+                        Margin="0,20,0,0"
+                        IsEnabled="{Binding Product.IsInStock}"/>
+
+            </VerticalStackLayout>
+        </Grid>
+    </ScrollView>
+</ContentPage>

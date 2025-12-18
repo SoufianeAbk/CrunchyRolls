@@ -1,0 +1,430 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="CrunchyRolls.MainPage"
+             BackgroundColor="#0a0a0a">
+
+    <ScrollView>
+        <VerticalStackLayout Spacing="0" Padding="0">
+
+            <!-- ===== HERO SECTION ===== -->
+            <VerticalStackLayout Padding="30,50,30,40" BackgroundColor="#1a1a1a" Spacing="22">
+
+                <Label Text="🍣"
+                       FontSize="80"
+                       HorizontalOptions="Center"/>
+
+                <VerticalStackLayout HorizontalOptions="Center" Spacing="8">
+                    <Label Text="CrunchyRolls"
+                           FontSize="56"
+                           FontAttributes="Bold"
+                           TextColor="#ffffff"
+                           HorizontalOptions="Center"
+                           CharacterSpacing="2"/>
+
+                    <Label Text="Premium Sushi Delivery"
+                           FontSize="22"
+                           TextColor="#FFD700"
+                           HorizontalOptions="Center"
+                           FontAttributes="Bold"/>
+                </VerticalStackLayout>
+
+                <Label Text="Verse, authentieke Japanse cuisine direct naar je deur"
+                       FontSize="16"
+                       TextColor="#d0d0d0"
+                       HorizontalOptions="Center"
+                       HorizontalTextAlignment="Center"
+                       LineBreakMode="WordWrap"
+                       Margin="20,5,20,0"
+                       LineHeight="1.6"/>
+
+                <!-- Primary CTA -->
+                <Button Text="🛵  Nu Bestellen"
+                        FontSize="20"
+                        FontAttributes="Bold"
+                        Padding="30,16"
+                        Margin="40,15,40,0"
+                        BackgroundColor="#FFD700"
+                        TextColor="#000000"
+                        Clicked="OnStartOrderingTapped"
+                        CornerRadius="14"/>
+
+                <!-- Secondary CTA -->
+                <Button Text="📋  Menu Verkennen"
+                        FontSize="16"
+                        Padding="25,12"
+                        Margin="40,8,40,0"
+                        BackgroundColor="Transparent"
+                        TextColor="#FFD700"
+                        BorderColor="#FFD700"
+                        BorderWidth="2"
+                        Clicked="OnStartOrderingTapped"
+                        CornerRadius="12"/>
+            </VerticalStackLayout>
+
+            <!-- ===== SPECIAL OFFER BANNER ===== -->
+            <Border StrokeThickness="2"
+                    Stroke="#FF6B6B"
+                    Padding="28"
+                    Margin="20,15,20,30"
+                    BackgroundColor="Transparent">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="16"/>
+                </Border.StrokeShape>
+                <VerticalStackLayout Spacing="12" HorizontalOptions="Center">
+                    <Label Text="🎉"
+                           FontSize="48"
+                           HorizontalOptions="Center"/>
+                    <Label Text="Speciale Aanbieding"
+                           FontSize="20"
+                           FontAttributes="Bold"
+                           TextColor="#FF6B6B"
+                           HorizontalOptions="Center"/>
+                    <Label Text="15% KORTING"
+                           FontSize="28"
+                           FontAttributes="Bold"
+                           TextColor="#ffffff"
+                           HorizontalOptions="Center"/>
+                    <Label Text="op je eerste bestelling"
+                           FontSize="16"
+                           TextColor="#e0e0e0"
+                           HorizontalOptions="Center"/>
+                    <BoxView HeightRequest="1" Color="#333333" Margin="0,8"/>
+                    <Label Text="SUSHI15"
+                           FontSize="18"
+                           TextColor="#FFD700"
+                           HorizontalOptions="Center"
+                           FontAttributes="Bold"
+                           Margin="0,5,0,0"/>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- ===== MAIN CONTENT ===== -->
+            <VerticalStackLayout Padding="20" Spacing="35" BackgroundColor="#0a0a0a">
+
+                <!-- ===== SPECIALITEITEN SECTION ===== -->
+                <VerticalStackLayout Spacing="20">
+                    <Label Text="Onze Specialiteiten"
+                           FontSize="32"
+                           FontAttributes="Bold"
+                           TextColor="#ffffff"
+                           Margin="0,10,0,0"/>
+
+                    <!-- Sushi Card -->
+                    <Border StrokeThickness="1"
+                            Stroke="#333333"
+                            BackgroundColor="#1a1a1a"
+                            Padding="0">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="16"/>
+                        </Border.StrokeShape>
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnSushiCategoryTapped"/>
+                        </Border.GestureRecognizers>
+                        <VerticalStackLayout Spacing="0">
+                            <!-- Image placeholder -->
+                            <VerticalStackLayout Padding="0" 
+                                               Margin="0"
+                                               HeightRequest="180"
+                                               BackgroundColor="#2a2a2a"
+                                               HorizontalOptions="Fill"
+                                               VerticalOptions="Fill">
+                                <Label Text="🍣"
+                                       FontSize="100"
+                                       HorizontalOptions="Center"
+                                       VerticalOptions="Center"
+                                       Margin="0"/>
+                            </VerticalStackLayout>
+                            <!-- Content -->
+                            <VerticalStackLayout Padding="20" Spacing="8">
+                                <Label Text="Sushi Rollen"
+                                       FontSize="24"
+                                       FontAttributes="Bold"
+                                       TextColor="#FFD700"/>
+                                <Label Text="California, Dragon, Rainbow en meer"
+                                       FontSize="14"
+                                       TextColor="#b0b0b0"
+                                       LineHeight="1.4"/>
+                                <Label Text="Tik om te verkennen →"
+                                       FontSize="14"
+                                       TextColor="#FFD700"
+                                       FontAttributes="Bold"
+                                       Margin="0,8,0,0"/>
+                            </VerticalStackLayout>
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- Ramen Card -->
+                    <Border StrokeThickness="1"
+                            Stroke="#333333"
+                            BackgroundColor="#1a1a1a"
+                            Padding="0">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="16"/>
+                        </Border.StrokeShape>
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnRamenCategoryTapped"/>
+                        </Border.GestureRecognizers>
+                        <VerticalStackLayout Spacing="0">
+                            <!-- Image placeholder -->
+                            <VerticalStackLayout Padding="0" 
+                                               Margin="0"
+                                               HeightRequest="180"
+                                               BackgroundColor="#2a2a2a"
+                                               HorizontalOptions="Fill"
+                                               VerticalOptions="Fill">
+                                <Label Text="🍜"
+                                       FontSize="100"
+                                       HorizontalOptions="Center"
+                                       VerticalOptions="Center"
+                                       Margin="0"/>
+                            </VerticalStackLayout>
+                            <!-- Content -->
+                            <VerticalStackLayout Padding="20" Spacing="8">
+                                <Label Text="Ramen &amp; Noodles"
+                                       FontSize="24"
+                                       FontAttributes="Bold"
+                                       TextColor="#FFD700"/>
+                                <Label Text="Warme, hartige Japanse noedelsoepen"
+                                       FontSize="14"
+                                       TextColor="#b0b0b0"
+                                       LineHeight="1.4"/>
+                                <Label Text="Tik om te verkennen →"
+                                       FontSize="14"
+                                       TextColor="#FFD700"
+                                       FontAttributes="Bold"
+                                       Margin="0,8,0,0"/>
+                            </VerticalStackLayout>
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- Appetizers Card -->
+                    <Border StrokeThickness="1"
+                            Stroke="#333333"
+                            BackgroundColor="#1a1a1a"
+                            Padding="0">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="16"/>
+                        </Border.StrokeShape>
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Tapped="OnAppetisersCategoryTapped"/>
+                        </Border.GestureRecognizers>
+                        <VerticalStackLayout Spacing="0">
+                            <!-- Image placeholder -->
+                            <VerticalStackLayout Padding="0" 
+                                               Margin="0"
+                                               HeightRequest="180"
+                                               BackgroundColor="#2a2a2a"
+                                               HorizontalOptions="Fill"
+                                               VerticalOptions="Fill">
+                                <Label Text="🥟"
+                                       FontSize="100"
+                                       HorizontalOptions="Center"
+                                       VerticalOptions="Center"
+                                       Margin="0"/>
+                            </VerticalStackLayout>
+                            <!-- Content -->
+                            <VerticalStackLayout Padding="20" Spacing="8">
+                                <Label Text="Voorgerechten"
+                                       FontSize="24"
+                                       FontAttributes="Bold"
+                                       TextColor="#FFD700"/>
+                                <Label Text="Gyoza, Takoyaki, Tempura en meer"
+                                       FontSize="14"
+                                       TextColor="#b0b0b0"
+                                       LineHeight="1.4"/>
+                                <Label Text="Tik om te verkennen →"
+                                       FontSize="14"
+                                       TextColor="#FFD700"
+                                       FontAttributes="Bold"
+                                       Margin="0,8,0,0"/>
+                            </VerticalStackLayout>
+                        </VerticalStackLayout>
+                    </Border>
+                </VerticalStackLayout>
+
+                <!-- ===== WHY CHOOSE US SECTION ===== -->
+                <VerticalStackLayout Spacing="20">
+                    <Label Text="Waarom CrunchyScroll?"
+                           FontSize="28"
+                           FontAttributes="Bold"
+                           TextColor="#ffffff"
+                           Margin="0,10,0,0"/>
+
+                    <!-- Trust Signal Cards in Grid -->
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="15" RowSpacing="15">
+                        <!-- Speed -->
+                        <Border Grid.Row="0" Grid.Column="0"
+                                StrokeThickness="1"
+                                Stroke="#333333"
+                                BackgroundColor="#1a1a1a"
+                                Padding="20">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="12"/>
+                            </Border.StrokeShape>
+                            <VerticalStackLayout Spacing="10" HorizontalOptions="Center">
+                                <Label Text="⚡"
+                                       FontSize="48"
+                                       HorizontalOptions="Center"/>
+                                <Label Text="Snel"
+                                       FontSize="16"
+                                       FontAttributes="Bold"
+                                       TextColor="#FFD700"
+                                       HorizontalOptions="Center"/>
+                                <Label Text="30-45 min bezorging"
+                                       FontSize="12"
+                                       TextColor="#b0b0b0"
+                                       HorizontalOptions="Center"
+                                       HorizontalTextAlignment="Center"/>
+                            </VerticalStackLayout>
+                        </Border>
+
+                        <!-- Fresh -->
+                        <Border Grid.Row="0" Grid.Column="1"
+                                StrokeThickness="1"
+                                Stroke="#333333"
+                                BackgroundColor="#1a1a1a"
+                                Padding="20">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="12"/>
+                            </Border.StrokeShape>
+                            <VerticalStackLayout Spacing="10" HorizontalOptions="Center">
+                                <Label Text="✨"
+                                       FontSize="48"
+                                       HorizontalOptions="Center"/>
+                                <Label Text="Vers"
+                                       FontSize="16"
+                                       FontAttributes="Bold"
+                                       TextColor="#FFD700"
+                                       HorizontalOptions="Center"/>
+                                <Label Text="Dagverse ingrediënten"
+                                       FontSize="12"
+                                       TextColor="#b0b0b0"
+                                       HorizontalOptions="Center"
+                                       HorizontalTextAlignment="Center"/>
+                            </VerticalStackLayout>
+                        </Border>
+
+                        <!-- Quality -->
+                        <Border Grid.Row="1" Grid.Column="0"
+                                StrokeThickness="1"
+                                Stroke="#333333"
+                                BackgroundColor="#1a1a1a"
+                                Padding="20">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="12"/>
+                            </Border.StrokeShape>
+                            <VerticalStackLayout Spacing="10" HorizontalOptions="Center">
+                                <Label Text="👨‍🍳"
+                                       FontSize="48"
+                                       HorizontalOptions="Center"/>
+                                <Label Text="Experts"
+                                       FontSize="16"
+                                       FontAttributes="Bold"
+                                       TextColor="#FFD700"
+                                       HorizontalOptions="Center"/>
+                                <Label Text="Japanse chefs"
+                                       FontSize="12"
+                                       TextColor="#b0b0b0"
+                                       HorizontalOptions="Center"
+                                       HorizontalTextAlignment="Center"/>
+                            </VerticalStackLayout>
+                        </Border>
+
+                        <!-- Coverage -->
+                        <Border Grid.Row="1" Grid.Column="1"
+                                StrokeThickness="1"
+                                Stroke="#333333"
+                                BackgroundColor="#1a1a1a"
+                                Padding="20">
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="12"/>
+                            </Border.StrokeShape>
+                            <VerticalStackLayout Spacing="10" HorizontalOptions="Center">
+                                <Label Text="📍"
+                                       FontSize="48"
+                                       HorizontalOptions="Center"/>
+                                <Label Text="Bereik"
+                                       FontSize="16"
+                                       FontAttributes="Bold"
+                                       TextColor="#FFD700"
+                                       HorizontalOptions="Center"/>
+                                <Label Text="Hele stad"
+                                       FontSize="12"
+                                       TextColor="#b0b0b0"
+                                       HorizontalOptions="Center"
+                                       HorizontalTextAlignment="Center"/>
+                            </VerticalStackLayout>
+                        </Border>
+                    </Grid>
+                </VerticalStackLayout>
+
+                <!-- ===== CTA Section ===== -->
+                <VerticalStackLayout Spacing="15" Margin="0,20,0,10">
+                    <Button Text="🛵  Start je Bestelling"
+                            FontSize="20"
+                            FontAttributes="Bold"
+                            Padding="25,16"
+                            BackgroundColor="#FFD700"
+                            TextColor="#000000"
+                            Clicked="OnStartOrderingTapped"
+                            CornerRadius="14"/>
+
+                    <Label Text="Snelle, betrouwbare bezorging in jouw buurt"
+                           FontSize="13"
+                           TextColor="#888888"
+                           HorizontalOptions="Center"
+                           HorizontalTextAlignment="Center"
+                           Margin="0,5,0,0"/>
+                </VerticalStackLayout>
+
+                <!-- ===== CONTACT SECTION ===== -->
+                <Border StrokeThickness="1"
+                        Stroke="#333333"
+                        Padding="25"
+                        BackgroundColor="#1a1a1a">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="14"/>
+                    </Border.StrokeShape>
+                    <VerticalStackLayout Spacing="12" HorizontalOptions="Center">
+                        <Label Text="Vragen?"
+                               FontSize="18"
+                               FontAttributes="Bold"
+                               TextColor="#ffffff"
+                               HorizontalOptions="Center"/>
+
+                        <VerticalStackLayout Spacing="8" HorizontalOptions="Center">
+                            <HorizontalStackLayout Spacing="8" HorizontalOptions="Center">
+                                <Label Text="📧"
+                                       FontSize="14"/>
+                                <Label Text="info@crunchyscroll.nl"
+                                       FontSize="13"
+                                       TextColor="#FFD700"
+                                       FontAttributes="Bold"/>
+                            </HorizontalStackLayout>
+
+                            <HorizontalStackLayout Spacing="8" HorizontalOptions="Center">
+                                <Label Text="📞"
+                                       FontSize="14"/>
+                                <Label Text="+31 20 123 4567"
+                                       FontSize="13"
+                                       TextColor="#FFD700"
+                                       FontAttributes="Bold"/>
+                            </HorizontalStackLayout>
+                        </VerticalStackLayout>
+
+                        <Label Text="24/7 klantensupport"
+                               FontSize="11"
+                               TextColor="#888888"
+                               HorizontalOptions="Center"
+                               Margin="0,8,0,0"/>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Bottom spacing -->
+                <BoxView HeightRequest="20"/>
+            </VerticalStackLayout>
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>
