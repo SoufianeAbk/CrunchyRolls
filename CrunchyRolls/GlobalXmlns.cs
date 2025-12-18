@@ -1,6 +1,2 @@
 [assembly: XmlnsDefinition("http://schemas.microsoft.com/dotnet/maui/global", "CrunchyRolls")]
-[assembly: XmlnsDefinition("http://schemas.microsoft.com/dotnet/maui/global", "CrunchyRolls.Pages")]
-[assembly: XmlnsDefinition("http://schemas.microsoft.com/dotnet/maui/global", "CrunchyRolls.Models")]
-[assembly: XmlnsDefinition("http://schemas.microsoft.com/dotnet/maui/global", "CrunchyRolls.Services")]
-[assembly: XmlnsDefinition("http://schemas.microsoft.com/dotnet/maui/global", "CrunchyRolls.ViewModels")]
-[assembly: XmlnsDefinition("http://schemas.microsoft.com/dotnet/maui/global", "CrunchyRolls.Converters")]
+[assembly: XmlnsDefinition("http://schemas.microsoft.com/dotnet/maui/global", "CrunchyRolls.Views")]
