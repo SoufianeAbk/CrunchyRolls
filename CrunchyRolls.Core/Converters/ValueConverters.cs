@@ -92,8 +92,8 @@ namespace CrunchyRolls.Core.Converters
         {
             if (value is OrderStatus status)
             {
-                // Show cancel button only if order is not delivered or already cancelled
-                return status != OrderStatus.Delivered && status != OrderStatus.Cancelled;
+                // Toon verwijder knop voor alle bestellingen behalve Delivered
+                return status != OrderStatus.Delivered;
             }
             return false;
         }

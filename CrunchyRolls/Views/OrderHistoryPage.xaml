@@ -82,9 +82,9 @@
                                            HorizontalTextAlignment="Center"/>
                                 </VerticalStackLayout>
 
-                                <!-- Cancel button (only if not delivered or cancelled) -->
+                                <!-- Delete button (zichtbaar voor alle bestellingen behalve Delivered) -->
                                 <Button Grid.Column="1"
-                                        Text="Annuleren"
+                                        Text="🗑️ Verwijderen"
                                         FontSize="12"
                                         Padding="10,8"
                                         Command="{Binding Source={RelativeSource AncestorType={x:Type viewmodels:OrderHistoryViewModel}}, Path=CancelOrderCommand}"

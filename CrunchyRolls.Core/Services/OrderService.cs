@@ -162,6 +162,21 @@ namespace CrunchyRolls.Core.Services
             return await UpdateOrderStatusAsync(orderId, OrderStatus.Cancelled);
         }
 
+        /// <summary>
+        /// Verwijder een bestelling volledig uit de geschiedenis
+        /// </summary>
+        public async Task<bool> DeleteOrderAsync(int orderId)
+        {
+            var order = _orderHistory.FirstOrDefault(o => o.Id == orderId);
+            if (order != null)
+            {
+                _orderHistory.Remove(order);
+                await Task.Delay(100);
+                return true;
+            }
+            return false;
+        }
+
         // Statistieken
         public int GetTotalOrdersCount()
         {

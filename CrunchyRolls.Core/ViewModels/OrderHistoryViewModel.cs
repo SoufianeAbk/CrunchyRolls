@@ -119,20 +119,21 @@ namespace CrunchyRolls.Core.ViewModels
                 return;
 
             bool confirm = await ShowConfirmation(
-                "Bestelling annuleren",
-                $"Weet je zeker dat je bestelling #{order.Id} wilt annuleren?",
-                "Ja, annuleren",
+                "Bestelling verwijderen",
+                $"Weet je zeker dat je bestelling #{order.Id} wilt verwijderen? Dit kan niet ongedaan gemaakt worden.",
+                "Ja, verwijderen",
                 "Nee");
 
             if (confirm)
             {
-                var success = await _orderService.CancelOrderAsync(order.Id);
+                // Verwijder de bestelling volledig in plaats van alleen de status aan te passen
+                var success = await _orderService.DeleteOrderAsync(order.Id);
 
                 if (success)
                 {
                     await ShowAlert(
-                        "Geannuleerd",
-                        $"Bestelling #{order.Id} is geannuleerd.",
+                        "Verwijderd",
+                        $"Bestelling #{order.Id} is verwijderd.",
                         "OK");
 
                     await LoadOrdersAsync();
@@ -141,7 +142,7 @@ namespace CrunchyRolls.Core.ViewModels
                 {
                     await ShowAlert(
                         "Fout",
-                        "Kon bestelling niet annuleren.",
+                        "Kon bestelling niet verwijderen.",
                         "OK");
                 }
             }
