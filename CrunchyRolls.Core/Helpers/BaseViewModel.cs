@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
-namespace CrunchyRolls.Helpers
+namespace CrunchyRolls.Core.Helpers
 {
     public class BaseViewModel : INotifyPropertyChanged
     {

@@ -1,12 +1,11 @@
-﻿using CrunchyScroll.Core.Models;
-using CrunchyScroll.Helpers;
-using CrunchyScroll.Models;
-using CrunchyScroll.Services;
+﻿using CrunchyRolls.Core.Models;
+using CrunchyRolls.Core.Helpers;
+using CrunchyRolls.Core.Services;
 using System.Collections.ObjectModel;
 using System.Windows.Input;
 using static System.Net.Mime.MediaTypeNames;
 
-namespace CrunchyScroll.ViewModels
+namespace CrunchyRolls.Core.ViewModels
 {
     public class ProductsViewModel : BaseViewModel
     {

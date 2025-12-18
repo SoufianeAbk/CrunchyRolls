@@ -1,6 +1,6 @@
-﻿using CrunchyRolls.Models;
+﻿using CrunchyRolls.Core.Models;
 
-namespace CrunchyRolls.Services
+namespace CrunchyRolls.Core.Services
 {
     public class OrderService
     {

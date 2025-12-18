@@ -1,10 +1,10 @@
-﻿using CrunchyScroll.Helpers;
-using CrunchyScroll.Models;
-using CrunchyScroll.Services;
+﻿using CrunchyScroll.Core.Helpers;
+using CrunchyScroll.Core.Models;
+using CrunchyScroll.Core.Services;
 using System.Windows.Input;
 using static System.Net.Mime.MediaTypeNames;
 
-namespace CrunchyScroll.ViewModels
+namespace CrunchyRolls.Core.ViewModels
 {
     [QueryProperty(nameof(Product), "Product")]
     public class ProductDetailViewModel : BaseViewModel

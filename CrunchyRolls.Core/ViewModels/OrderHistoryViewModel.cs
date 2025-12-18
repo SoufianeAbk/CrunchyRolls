@@ -1,11 +1,11 @@
-﻿using CrunchyRolls.Helpers;
-using CrunchyRolls.Models;
-using CrunchyRolls.Services;
+﻿using CrunchyRolls.Core.Helpers;
+using CrunchyRolls.Core.Models;
+using CrunchyRolls.Core.Services;
 using System.Collections.ObjectModel;
 using System.Windows.Input;
 using static System.Net.Mime.MediaTypeNames;
 
-namespace CrunchyRolls.ViewModels
+namespace CrunchyRolls.Core.ViewModels
 {
     public class OrderHistoryViewModel : BaseViewModel
     {

@@ -1,6 +1,6 @@
 ﻿using CrunchyRolls.Core.Models;
 
-namespace CrunchyRolls.Models
+namespace CrunchyRolls.Core.Models
 {
     public class Product
     {

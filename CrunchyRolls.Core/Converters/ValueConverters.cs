@@ -1,8 +1,8 @@
-﻿using CrunchyRolls.Models;
-using System.Drawing;
+﻿using CrunchyRolls.Core.Models;
+using Microsoft.Maui.Graphics;
 using System.Globalization;
 
-namespace CrunchyRolls.Converters
+namespace CrunchyRolls.Core.Converters
 {
     public class InvertedBoolConverter : IValueConverter
     {

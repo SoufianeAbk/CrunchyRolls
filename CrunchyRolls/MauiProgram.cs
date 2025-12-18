@@ -1,5 +1,5 @@
-﻿using CrunchyRolls.Services;
-using CrunchyRolls.ViewModels;
+﻿using CrunchyRolls.Core.Services;
+using CrunchyRolls.Core.ViewModels;
 using CrunchyRolls.Views;
 using Microsoft.Extensions.Logging;
 

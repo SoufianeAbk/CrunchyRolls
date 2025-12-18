@@ -1,7 +1,6 @@
 ﻿using CrunchyRolls.Core.Models;
-using CrunchyRolls.Models;
 
-namespace CrunchyRolls.Services
+namespace CrunchyRolls.Core.Services
 {
     public class ProductService
     {

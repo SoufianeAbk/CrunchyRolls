@@ -1,11 +1,11 @@
-﻿using CrunchyScroll.Helpers;
-using CrunchyScroll.Models;
-using CrunchyScroll.Services;
+﻿using CrunchyScroll.Core.Helpers;
+using CrunchyScroll.Core.Models;
+using CrunchyScroll.Core.Services;
 using System.Collections.ObjectModel;
 using System.Windows.Input;
 using static System.Net.Mime.MediaTypeNames;
 
-namespace CrunchyScroll.ViewModels
+namespace CrunchyScroll.Core.ViewModels
 {
     public class OrderViewModel : BaseViewModel
     {
