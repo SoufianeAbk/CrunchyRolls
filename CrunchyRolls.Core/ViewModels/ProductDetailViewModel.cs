@@ -2,7 +2,6 @@
 using CrunchyRolls.Core.Models;
 using CrunchyRolls.Core.Services;
 using System.Windows.Input;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace CrunchyRolls.Core.ViewModels
 {

@@ -2,7 +2,7 @@
 <Application xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:local="clr-namespace:CrunchyRolls"
-             xmlns:converters="clr-namespace:CrunchyRolls.Core.Converters"
+             xmlns:converters="clr-namespace:CrunchyRolls.Core.Converters;assembly=CrunchyRolls.Core"
              x:Class="CrunchyRolls.App">
     <Application.Resources>
         <ResourceDictionary>
@@ -16,6 +16,7 @@
             <converters:IsNotZeroConverter x:Key="IsNotZeroConverter"/>
             <converters:StatusToColorConverter x:Key="StatusToColorConverter"/>
             <converters:StatusToTextConverter x:Key="StatusToTextConverter"/>
+            <converters:StatusToCancelVisibilityConverter x:Key="StatusToCancelVisibilityConverter"/>
         </ResourceDictionary>
     </Application.Resources>
 </Application>
