@@ -1,4 +1,4 @@
-using CrunchyRolls.ViewModels;
+using CrunchyRolls.Core.ViewModels;
 
 namespace CrunchyRolls.Views;
 
@@ -18,4 +18,4 @@ public partial class ProductsPage : ContentPage
         base.OnAppearing();
         await _viewModel.LoadDataAsync();
     }
-}s
+}

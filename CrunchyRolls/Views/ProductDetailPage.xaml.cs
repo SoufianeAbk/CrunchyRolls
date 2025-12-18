@@ -1,4 +1,4 @@
-using CrunchyRolls.ViewModels;
+using CrunchyRolls.Core.ViewModels;
 
 namespace CrunchyRolls.Views;
 
