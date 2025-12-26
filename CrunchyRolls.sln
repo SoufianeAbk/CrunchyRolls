@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CrunchyRolls.Models", "Crun
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CrunchyRolls.Data", "CrunchyRolls.Data\CrunchyRolls.Data.csproj", "{46FDD4AB-E9B4-4D9B-97A0-AED1B22EFE9A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CrunchyRolls.Api", "CrunchyRolls.Api\CrunchyRolls.Api.csproj", "{B97A597F-49BD-4992-AA7D-4ED1545C7C9E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -34,6 +36,10 @@ Global
 		{46FDD4AB-E9B4-4D9B-97A0-AED1B22EFE9A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{46FDD4AB-E9B4-4D9B-97A0-AED1B22EFE9A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{46FDD4AB-E9B4-4D9B-97A0-AED1B22EFE9A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B97A597F-49BD-4992-AA7D-4ED1545C7C9E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B97A597F-49BD-4992-AA7D-4ED1545C7C9E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B97A597F-49BD-4992-AA7D-4ED1545C7C9E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B97A597F-49BD-4992-AA7D-4ED1545C7C9E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
