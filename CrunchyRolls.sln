@@ -9,7 +9,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CrunchyRolls.Core", "Crunch
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CrunchyRolls.Models", "CrunchyRolls.Models\CrunchyRolls.Models.csproj", "{D2620DBE-B81D-4C8B-8511-84902EFC3221}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CrunchyRolls.Data", "CrunchyRolls.Data\CrunchyRolls.Data.csproj", "{054090C6-6C87-4701-8606-8313E950797B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CrunchyRolls.Api", "CrunchyRolls.Data\CrunchyRolls.Api.csproj", "{054090C6-6C87-4701-8606-8313E950797B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
