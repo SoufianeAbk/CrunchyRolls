@@ -2,7 +2,7 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:viewmodels="clr-namespace:CrunchyRolls.Core.ViewModels;assembly=CrunchyRolls.Core"
-             xmlns:models="clr-namespace:CrunchyRolls.Core.Models;assembly=CrunchyRolls.Core"
+             xmlns:models="clr-namespace:CrunchyRolls.Models.Entities;assembly=CrunchyRolls.Models"
              x:Class="CrunchyRolls.Views.ProductsPage"
              x:DataType="viewmodels:ProductsViewModel"
              Title="{Binding Title}">
