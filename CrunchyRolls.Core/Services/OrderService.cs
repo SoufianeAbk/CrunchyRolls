@@ -1,4 +1,5 @@
 ﻿using CrunchyRolls.Models.Entities;
+using CrunchyRolls.Models.Enums;
 
 namespace CrunchyRolls.Core.Services
 {
