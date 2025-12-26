@@ -1,4 +1,4 @@
-﻿using CrunchyRolls.Models.Entities;
+﻿using CrunchyRolls.Models.Enums;
 using Microsoft.Maui.Graphics;
 using System.Globalization;
 

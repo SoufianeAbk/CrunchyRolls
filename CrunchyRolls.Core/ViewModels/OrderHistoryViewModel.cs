@@ -1,6 +1,7 @@
 ﻿using CrunchyRolls.Core.Helpers;
 using CrunchyRolls.Models.Entities;
 using CrunchyRolls.Core.Services;
+using CrunchyRolls.Models.Enums;
 using System.Collections.ObjectModel;
 using System.Windows.Input;
 
