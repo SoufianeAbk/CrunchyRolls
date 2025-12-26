@@ -1,5 +1,5 @@
 ﻿using CrunchyRolls.Core.Helpers;
-using CrunchyRolls.Core.Models;
+using CrunchyRolls.Models.Entities;
 using CrunchyRolls.Core.Services;
 using System.Windows.Input;
 

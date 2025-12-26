@@ -10,5 +10,8 @@
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
 	</ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\CrunchyRolls.Models\CrunchyRolls.Models.csproj" />
+	</ItemGroup>
 
 </Project>
