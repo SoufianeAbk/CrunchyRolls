@@ -1,6 +1,0 @@
-@CrunchyRolls.Data_HostAddress = http://localhost:5293
-
-GET {{CrunchyRolls.Data_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###
