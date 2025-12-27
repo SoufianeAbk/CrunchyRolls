@@ -78,7 +78,7 @@ namespace CrunchyRolls.Core.Services
                     Price = 8.50m,
                     CategoryId = 1,
                     StockQuantity = 15,
-                    ImageUrl = "california_roll"
+                    ImageUrl = "california_roll.jpg"
                 },
                 new Product
                 {
@@ -88,7 +88,7 @@ namespace CrunchyRolls.Core.Services
                     Price = 6.75m,
                     CategoryId = 1,
                     StockQuantity = 20,
-                    ImageUrl = "salmon_nigiri"
+                    ImageUrl = "salmon_nigiri.jpg"
                 },
                 new Product
                 {
@@ -98,7 +98,7 @@ namespace CrunchyRolls.Core.Services
                     Price = 9.00m,
                     CategoryId = 1,
                     StockQuantity = 0,
-                    ImageUrl = "tuna_roll"
+                    ImageUrl = "tuna_roll.jpg"
                 },
                 new Product
                 {
@@ -108,7 +108,7 @@ namespace CrunchyRolls.Core.Services
                     Price = 12.50m,
                     CategoryId = 1,
                     StockQuantity = 8,
-                    ImageUrl = "dragon_roll"
+                    ImageUrl = "dragon_roll.jpg"
                 },
                 new Product
                 {
@@ -118,7 +118,7 @@ namespace CrunchyRolls.Core.Services
                     Price = 14.00m,
                     CategoryId = 1,
                     StockQuantity = 10,
-                    ImageUrl = "rainbow_roll"
+                    ImageUrl = "rainbow_roll.jpg"
                 },
                 
                 // === Ramen (Categorie 2) - 5 producten ===
@@ -130,7 +130,7 @@ namespace CrunchyRolls.Core.Services
                     Price = 12.50m,
                     CategoryId = 2,
                     StockQuantity = 10,
-                    ImageUrl = "shoyu_ramen"
+                    ImageUrl = "shoyu_ramen.jpg"
                 },
                 new Product
                 {
@@ -140,7 +140,7 @@ namespace CrunchyRolls.Core.Services
                     Price = 13.00m,
                     CategoryId = 2,
                     StockQuantity = 8,
-                    ImageUrl = "miso_ramen"
+                    ImageUrl = "miso_ramen.jpg"
                 },
                 new Product
                 {
@@ -150,7 +150,7 @@ namespace CrunchyRolls.Core.Services
                     Price = 14.50m,
                     CategoryId = 2,
                     StockQuantity = 12,
-                    ImageUrl = "tonkotsu_ramen"
+                    ImageUrl = "tonkotsu_ramen.jpg"
                 },
                 new Product
                 {
@@ -160,7 +160,7 @@ namespace CrunchyRolls.Core.Services
                     Price = 13.50m,
                     CategoryId = 2,
                     StockQuantity = 0,
-                    ImageUrl = "spicy_ramen"
+                    ImageUrl = "spicy_ramen.jpg"
                 },
                 new Product
                 {
@@ -170,7 +170,7 @@ namespace CrunchyRolls.Core.Services
                     Price = 11.50m,
                     CategoryId = 2,
                     StockQuantity = 15,
-                    ImageUrl = "veggie_ramen"
+                    ImageUrl = "veggie_ramen.jpg"
                 },
                 
                 // === Dranken (Categorie 3) - 5 producten ===
@@ -182,7 +182,7 @@ namespace CrunchyRolls.Core.Services
                     Price = 2.50m,
                     CategoryId = 3,
                     StockQuantity = 30,
-                    ImageUrl = "green_tea"
+                    ImageUrl = "green_tea.jpg"
                 },
                 new Product
                 {
@@ -192,7 +192,7 @@ namespace CrunchyRolls.Core.Services
                     Price = 3.00m,
                     CategoryId = 3,
                     StockQuantity = 25,
-                    ImageUrl = "ramune"
+                    ImageUrl = "ramune.jpg"
                 },
                 new Product
                 {
@@ -202,7 +202,7 @@ namespace CrunchyRolls.Core.Services
                     Price = 8.50m,
                     CategoryId = 3,
                     StockQuantity = 18,
-                    ImageUrl = "sake"
+                    ImageUrl = "sake.jpg"
                 },
                 new Product
                 {
@@ -212,7 +212,7 @@ namespace CrunchyRolls.Core.Services
                     Price = 4.50m,
                     CategoryId = 3,
                     StockQuantity = 20,
-                    ImageUrl = "matcha_latte"
+                    ImageUrl = "matcha_latte.jpg"
                 },
                 new Product
                 {
@@ -222,7 +222,7 @@ namespace CrunchyRolls.Core.Services
                     Price = 3.50m,
                     CategoryId = 3,
                     StockQuantity = 22,
-                    ImageUrl = "yuzu_lemonade"
+                    ImageUrl = "yuzu_lemonade.jpg"
                 },
                 
                 // === Desserts (Categorie 4) - 5 producten ===
@@ -234,7 +234,7 @@ namespace CrunchyRolls.Core.Services
                     Price = 4.50m,
                     CategoryId = 4,
                     StockQuantity = 12,
-                    ImageUrl = "mochi"
+                    ImageUrl = "mochi.jpg"
                 },
                 new Product
                 {
@@ -244,7 +244,7 @@ namespace CrunchyRolls.Core.Services
                     Price = 3.75m,
                     CategoryId = 4,
                     StockQuantity = 18,
-                    ImageUrl = "dorayaki"
+                    ImageUrl = "dorayaki.jpg"
                 },
                 new Product
                 {
@@ -254,7 +254,7 @@ namespace CrunchyRolls.Core.Services
                     Price = 4.00m,
                     CategoryId = 4,
                     StockQuantity = 14,
-                    ImageUrl = "taiyaki"
+                    ImageUrl = "taiyaki.jpg"
                 },
                 new Product
                 {
@@ -264,7 +264,7 @@ namespace CrunchyRolls.Core.Services
                     Price = 5.50m,
                     CategoryId = 4,
                     StockQuantity = 0,
-                    ImageUrl = "matcha_ice_cream"
+                    ImageUrl = "matcha_ice_cream.jpg"
                 },
                 new Product
                 {
@@ -274,7 +274,7 @@ namespace CrunchyRolls.Core.Services
                     Price = 6.00m,
                     CategoryId = 4,
                     StockQuantity = 10,
-                    ImageUrl = "anmitsu"
+                    ImageUrl = "anmitsu.jpg"
                 },
                 
                 // === Voorgerechten (Categorie 5) - 5 producten ===
@@ -286,7 +286,7 @@ namespace CrunchyRolls.Core.Services
                     Price = 4.00m,
                     CategoryId = 5,
                     StockQuantity = 25,
-                    ImageUrl = "edamame"
+                    ImageUrl = "edamame.jpg"
                 },
                 new Product
                 {
@@ -296,7 +296,7 @@ namespace CrunchyRolls.Core.Services
                     Price = 6.50m,
                     CategoryId = 5,
                     StockQuantity = 20,
-                    ImageUrl = "gyoza"
+                    ImageUrl = "gyoza.jpg"
                 },
                 new Product
                 {
@@ -306,7 +306,7 @@ namespace CrunchyRolls.Core.Services
                     Price = 7.00m,
                     CategoryId = 5,
                     StockQuantity = 15,
-                    ImageUrl = "takoyaki"
+                    ImageUrl = "takoyaki.jpg"
                 },
                 new Product
                 {
@@ -316,7 +316,7 @@ namespace CrunchyRolls.Core.Services
                     Price = 8.50m,
                     CategoryId = 5,
                     StockQuantity = 0,
-                    ImageUrl = "tempura"
+                    ImageUrl = "tempura.jpg"
                 },
                 new Product
                 {
@@ -326,7 +326,7 @@ namespace CrunchyRolls.Core.Services
                     Price = 7.50m,
                     CategoryId = 5,
                     StockQuantity = 18,
-                    ImageUrl = "yakitori"
+                    ImageUrl = "yakitori.jpg"
                 }
             };
         }
