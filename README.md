@@ -89,9 +89,9 @@ dotnet run
  4. MAUI Frontend starten (ander terminal)
 cd CrunchyRolls
 dotnet run -f net9.0-windows10.0.19041.0  # Windows
-# of
+
 dotnet run -f net9.0-android              # Android
-# of
+
 dotnet run -f net9.0-ios                  # iOS (macOS only)
 
  5. Klaar! 🎉
