@@ -178,28 +178,21 @@ namespace CrunchyRolls.Core.ViewModels
         }
 
         // Helper methods for dialogs
-        private async Task ShowAlert(string title, string message, string cancel)
+        private static async Task ShowAlert(string title, string message, string cancel)
         {
-            var page = GetCurrentPage();
-            if (page != null)
+            if (Shell.Current?.CurrentPage != null)
             {
-                await page.DisplayAlert(title, message, cancel);
+                await Shell.Current.CurrentPage.DisplayAlert(title, message, cancel);
             }
         }
 
-        private async Task<bool> ShowConfirmation(string title, string message, string accept, string cancel)
+        private static async Task<bool> ShowConfirmation(string title, string message, string accept, string cancel)
         {
-            var page = GetCurrentPage();
-            if (page != null)
+            if (Shell.Current?.CurrentPage != null)
             {
-                return await page.DisplayAlert(title, message, accept, cancel);
+                return await Shell.Current.CurrentPage.DisplayAlert(title, message, accept, cancel);
             }
             return false;
-        }
-
-        private static Page? GetCurrentPage()
-        {
-            return Application.Current?.MainPage;
         }
     }
 }
