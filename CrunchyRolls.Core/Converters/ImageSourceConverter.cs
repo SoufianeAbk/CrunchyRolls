@@ -11,15 +11,9 @@ namespace CrunchyRolls.Core.Converters
             {
                 try
                 {
-                    // Controleer of het pad al het volledige pad bevat
-                    if (imagePath.StartsWith("Resources/"))
-                    {
-                        return ImageSource.FromFile(imagePath);
-                    }
-
-                    // Voeg het Resources/Images/ prefix toe
-                    var fullPath = $"Resources/Images/{imagePath}";
-                    return ImageSource.FromFile(fullPath);
+                    // Voor .NET MAUI MauiImage: gebruik ALLEEN de bestandsnaam
+                    // NIET Resources/Images/ - dat wordt automatisch door MAUI afgehandeld
+                    return ImageSource.FromFile(imagePath);
                 }
                 catch (Exception ex)
                 {
