@@ -17,6 +17,7 @@
             <converters:StatusToColorConverter x:Key="StatusToColorConverter"/>
             <converters:StatusToTextConverter x:Key="StatusToTextConverter"/>
             <converters:StatusToCancelVisibilityConverter x:Key="StatusToCancelVisibilityConverter"/>
+            <converters:ImageSourceConverter x:Key="ImageSourceConverter"/>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

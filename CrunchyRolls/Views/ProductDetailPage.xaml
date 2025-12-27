@@ -17,7 +17,7 @@
                 <Border.StrokeShape>
                     <RoundRectangle CornerRadius="15"/>
                 </Border.StrokeShape>
-                <Image Source="{Binding Product.ImageUrl}"
+                <Image Source="{Binding Product.ImageUrl, Converter={StaticResource ImageSourceConverter}}"
                        Aspect="AspectFill"
                        HeightRequest="300"/>
             </Border>

@@ -36,9 +36,15 @@
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'tizen'">6.5</SupportedOSPlatformVersion>
 	</PropertyGroup>
 
+	<!-- ===== MAUI IMAGE BUILD ACTION ===== -->
 	<ItemGroup>
-  <ProjectReference Include="..\CrunchyRolls.Core\CrunchyRolls.Core.csproj" />
-</ItemGroup>
+		<MauiImage Include="Resources/Images/*.jpg" />
+		<MauiImage Include="Resources/Images/*.png" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\CrunchyRolls.Core\CrunchyRolls.Core.csproj" />
+	</ItemGroup>
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.8" />
 	</ItemGroup>

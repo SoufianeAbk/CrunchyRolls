@@ -9,7 +9,7 @@
 
     <ContentPage.ToolbarItems>
         <ToolbarItem Text="Winkelwagen" 
-                     Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=GoToCartCommand}"/>
+                     Command="{Binding NavigateToCartCommand}"/>
     </ContentPage.ToolbarItems>
 
     <Grid RowDefinitions="Auto,Auto,*" Padding="10">
@@ -68,7 +68,7 @@
                             <Grid RowDefinitions="120,Auto,Auto,Auto,Auto">
                                 <!-- Product image -->
                                 <Image Grid.Row="0"
-                                       Source="{Binding ImageUrl}"
+                                       Source="{Binding ImageUrl, Converter={StaticResource ImageSourceConverter}}"
                                        Aspect="AspectFill"
                                        HeightRequest="120"
                                        Margin="0,0,0,5"/>
