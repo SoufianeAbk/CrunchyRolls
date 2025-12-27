@@ -1,10 +1,10 @@
 ﻿using CrunchyRolls.Core.Helpers;
-using CrunchyRolls.Models.Entities;
 using CrunchyRolls.Core.Services;
+using CrunchyRolls.Models.Entities;
 using CrunchyRolls.Models.Enums;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Windows.Input;
-
 
 namespace CrunchyRolls.Core.ViewModels
 {
@@ -16,6 +16,7 @@ namespace CrunchyRolls.Core.ViewModels
         private Order? _selectedOrder;
         private int _totalOrders;
         private decimal _totalSpent;
+        private string _customerEmail = string.Empty;
 
         public ObservableCollection<Order> Orders
         {
@@ -41,6 +42,12 @@ namespace CrunchyRolls.Core.ViewModels
             set => SetProperty(ref _totalSpent, value);
         }
 
+        public string CustomerEmail
+        {
+            get => _customerEmail;
+            set => SetProperty(ref _customerEmail, value);
+        }
+
         public bool HasOrders => Orders.Any();
 
         public ICommand LoadOrdersCommand { get; }
@@ -50,7 +57,7 @@ namespace CrunchyRolls.Core.ViewModels
 
         public OrderHistoryViewModel(OrderService orderService)
         {
-            _orderService = orderService;
+            _orderService = orderService ?? throw new ArgumentNullException(nameof(orderService));
 
             Title = "Bestelgeschiedenis";
 
@@ -58,18 +65,46 @@ namespace CrunchyRolls.Core.ViewModels
             OrderTappedCommand = new Command<Order>(OnOrderTapped);
             CancelOrderCommand = new Command<Order>(async (order) => await OnCancelOrderAsync(order));
             RefreshCommand = new Command(async () => await LoadOrdersAsync());
+
+            Debug.WriteLine("📋 OrderHistoryViewModel initialized");
         }
 
+        /// <summary>
+        /// Set customer email (moet ingesteld worden voor order loading)
+        /// </summary>
+        public void SetCustomerEmail(string email)
+        {
+            if (!string.IsNullOrWhiteSpace(email))
+            {
+                CustomerEmail = email;
+                Debug.WriteLine($"📧 Customer email set to: {email}");
+            }
+        }
+
+        /// <summary>
+        /// Load orders for current customer from API
+        /// </summary>
         public async Task LoadOrdersAsync()
         {
             if (IsBusy)
                 return;
 
+            if (string.IsNullOrWhiteSpace(CustomerEmail))
+            {
+                Debug.WriteLine("⚠️ Attempted to load orders without customer email");
+                await ShowAlert(
+                    "Fout",
+                    "Geen klant-email ingesteld. Meld je aan om je bestellingen te zien.",
+                    "OK");
+                return;
+            }
+
             try
             {
                 IsBusy = true;
+                Debug.WriteLine($"📋 Loading orders for {CustomerEmail}...");
 
-                var orders = await _orderService.GetOrderHistoryAsync();
+                var orders = await _orderService.GetOrderHistoryAsync(CustomerEmail);
 
                 Orders.Clear();
                 foreach (var order in orders)
@@ -77,13 +112,24 @@ namespace CrunchyRolls.Core.ViewModels
                     Orders.Add(order);
                 }
 
-                TotalOrders = _orderService.GetTotalOrdersCount();
-                TotalSpent = _orderService.GetTotalSpent();
+                TotalOrders = orders.Count;
+                TotalSpent = orders.Sum(o => o.TotalAmount);
 
                 OnPropertyChanged(nameof(HasOrders));
+
+                Debug.WriteLine($"✅ Loaded {orders.Count} orders for {CustomerEmail}");
+
+                if (!orders.Any())
+                {
+                    await ShowAlert(
+                        "Geen bestellingen",
+                        "Je hebt nog geen bestellingen geplaatst.",
+                        "OK");
+                }
             }
             catch (Exception ex)
             {
+                Debug.WriteLine($"❌ Error loading orders for {CustomerEmail}: {ex.Message}");
                 await ShowAlert(
                     "Fout",
                     $"Kon bestellingen niet laden: {ex.Message}",
@@ -100,18 +146,35 @@ namespace CrunchyRolls.Core.ViewModels
             if (order == null)
                 return;
 
-            // Toon order details
-            var itemsText = string.Join("\n", order.OrderItems.Select(i =>
-                $"• {i.Product?.Name ?? "Product"} x{i.Quantity} - €{i.SubTotal:F2}"));
+            try
+            {
+                var fullOrder = await _orderService.GetOrderByIdAsync(order.Id);
 
-            await ShowAlert(
-                $"Bestelling #{order.Id}",
-                $"Datum: {order.OrderDate:dd/MM/yyyy HH:mm}\n" +
-                $"Status: {GetStatusText(order.Status)}\n" +
-                $"Totaal: €{order.TotalAmount:F2}\n\n" +
-                $"Items:\n{itemsText}\n\n" +
-                $"Bezorgadres:\n{order.DeliveryAddress}",
-                "Sluiten");
+                if (fullOrder == null)
+                    fullOrder = order;
+
+                var itemsText = string.Join("\n", fullOrder.OrderItems.Select(i =>
+                    $"• {i.Product?.Name ?? $"Product #{i.ProductId}"} x{i.Quantity} - €{i.SubTotal:F2}"));
+
+                await ShowAlert(
+                    $"Bestelling #{fullOrder.Id}",
+                    $"Datum: {fullOrder.OrderDate:dd/MM/yyyy HH:mm}\n" +
+                    $"Status: {GetStatusText(fullOrder.Status)}\n" +
+                    $"Totaal: €{fullOrder.TotalAmount:F2}\n\n" +
+                    $"Items:\n{itemsText}\n\n" +
+                    $"Bezorgadres:\n{fullOrder.DeliveryAddress}",
+                    "Sluiten");
+
+                Debug.WriteLine($"✅ Showed details for order #{order.Id}");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"❌ Error showing order details for #{order.Id}: {ex.Message}");
+                await ShowAlert(
+                    "Fout",
+                    "Kon orderdetails niet laden",
+                    "OK");
+            }
         }
 
         private async Task OnCancelOrderAsync(Order order)
@@ -119,33 +182,52 @@ namespace CrunchyRolls.Core.ViewModels
             if (order == null || order.Status == OrderStatus.Delivered || order.Status == OrderStatus.Cancelled)
                 return;
 
-            bool confirm = await ShowConfirmation(
-                "Bestelling verwijderen",
-                $"Weet je zeker dat je bestelling #{order.Id} wilt verwijderen? Dit kan niet ongedaan gemaakt worden.",
-                "Ja, verwijderen",
-                "Nee");
-
-            if (confirm)
+            try
             {
-                // Verwijder de bestelling volledig in plaats van alleen de status aan te passen
-                var success = await _orderService.DeleteOrderAsync(order.Id);
+                bool confirm = await ShowConfirmation(
+                    "Bestelling verwijderen",
+                    $"Weet je zeker dat je bestelling #{order.Id} wilt verwijderen? Dit kan niet ongedaan gemaakt worden.",
+                    "Ja, verwijderen",
+                    "Nee");
 
-                if (success)
+                if (confirm)
                 {
-                    await ShowAlert(
-                        "Verwijderd",
-                        $"Bestelling #{order.Id} is verwijderd.",
-                        "OK");
+                    IsBusy = true;
+                    Debug.WriteLine($"🗑️ Deleting order #{order.Id}...");
 
-                    await LoadOrdersAsync();
+                    var success = await _orderService.DeleteOrderAsync(order.Id);
+
+                    if (success)
+                    {
+                        await ShowAlert(
+                            "Verwijderd",
+                            $"Bestelling #{order.Id} is verwijderd.",
+                            "OK");
+
+                        await LoadOrdersAsync();
+
+                        Debug.WriteLine($"✅ Order #{order.Id} deleted successfully");
+                    }
+                    else
+                    {
+                        await ShowAlert(
+                            "Fout",
+                            "Kon bestelling niet verwijderen. Probeer later opnieuw.",
+                            "OK");
+                    }
                 }
-                else
-                {
-                    await ShowAlert(
-                        "Fout",
-                        "Kon bestelling niet verwijderen.",
-                        "OK");
-                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"❌ Error deleting order #{order.Id}: {ex.Message}");
+                await ShowAlert(
+                    "Fout",
+                    $"Error: {ex.Message}",
+                    "OK");
+            }
+            finally
+            {
+                IsBusy = false;
             }
         }
 
@@ -166,16 +248,15 @@ namespace CrunchyRolls.Core.ViewModels
         {
             return status switch
             {
-                OrderStatus.Pending => "#FFA500",      // Orange
-                OrderStatus.Processing => "#0000FF",   // Blue
-                OrderStatus.Shipped => "#800080",      // Purple
-                OrderStatus.Delivered => "#008000",    // Green
-                OrderStatus.Cancelled => "#FF0000",    // Red
-                _ => "#808080"                         // Gray
+                OrderStatus.Pending => "#FFA500",
+                OrderStatus.Processing => "#0000FF",
+                OrderStatus.Shipped => "#800080",
+                OrderStatus.Delivered => "#008000",
+                OrderStatus.Cancelled => "#FF0000",
+                _ => "#808080"
             };
         }
 
-        // Helper methods for dialogs
         private static async Task ShowAlert(string title, string message, string cancel)
         {
             if (Shell.Current?.CurrentPage != null)

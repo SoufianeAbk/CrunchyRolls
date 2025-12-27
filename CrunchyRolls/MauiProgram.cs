@@ -18,30 +18,40 @@ public static class MauiProgram
                 fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
             });
 
-        // Register Services (uit Core)
+        // ===== LOGGING SETUP =====
+#if DEBUG
+        builder
+            .Services
+            .AddLogging(logging =>
+            {
+                logging.AddDebug();
+                logging.SetMinimumLevel(LogLevel.Information);
+                logging.AddFilter("CrunchyRolls", LogLevel.Debug);
+            });
+#endif
+
+        // ===== SERVICE REGISTRATION =====
+        // Register ApiService as singleton (will create HttpClient internally)
         builder.Services.AddSingleton<ApiService>();
+
         builder.Services.AddSingleton<ProductService>();
         builder.Services.AddSingleton<OrderService>();
 
-        // Register ViewModels (uit Core)
+        // ===== VIEWMODEL REGISTRATION =====
         builder.Services.AddTransient<ProductsViewModel>();
         builder.Services.AddTransient<ProductDetailViewModel>();
         builder.Services.AddTransient<OrderViewModel>();
         builder.Services.AddTransient<OrderHistoryViewModel>();
 
-        // Register Views (in MAUI project)
+        // ===== VIEW REGISTRATION =====
         builder.Services.AddSingleton<MainPage>();
         builder.Services.AddTransient<ProductsPage>();
         builder.Services.AddTransient<ProductDetailPage>();
         builder.Services.AddTransient<OrderPage>();
         builder.Services.AddTransient<OrderHistoryPage>();
 
-        // Register AppShell (in MAUI project)
+        // ===== APP SHELL =====
         builder.Services.AddSingleton<AppShell>();
-
-#if DEBUG
-        object debugLogger = builder.Logging.AddDebug();
-#endif
 
         return builder.Build();
     }
