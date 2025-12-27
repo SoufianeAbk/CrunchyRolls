@@ -78,7 +78,7 @@ namespace CrunchyRolls.Core.Services
                     Price = 8.50m,
                     CategoryId = 1,
                     StockQuantity = 15,
-                    ImageUrl = "california_roll.jpg"
+                    ImageUrl = "california_roll"
                 },
                 new Product
                 {
@@ -88,7 +88,7 @@ namespace CrunchyRolls.Core.Services
                     Price = 6.75m,
                     CategoryId = 1,
                     StockQuantity = 20,
-                    ImageUrl = "salmon_nigiri.jpg"
+                    ImageUrl = "salmon_nigiri"
                 },
                 new Product
                 {
@@ -97,8 +97,8 @@ namespace CrunchyRolls.Core.Services
                     Description = "Verse tonijn roll",
                     Price = 9.00m,
                     CategoryId = 1,
-                    StockQuantity = 0, // Niet op voorraad
-                    ImageUrl = "tuna_roll.jpg"
+                    StockQuantity = 0,
+                    ImageUrl = "tuna_roll"
                 },
                 new Product
                 {
@@ -108,7 +108,7 @@ namespace CrunchyRolls.Core.Services
                     Price = 12.50m,
                     CategoryId = 1,
                     StockQuantity = 8,
-                    ImageUrl = "dragon_roll.jpg"
+                    ImageUrl = "dragon_roll"
                 },
                 new Product
                 {
@@ -118,7 +118,7 @@ namespace CrunchyRolls.Core.Services
                     Price = 14.00m,
                     CategoryId = 1,
                     StockQuantity = 10,
-                    ImageUrl = "rainbow_roll.jpg"
+                    ImageUrl = "rainbow_roll"
                 },
                 
                 // === Ramen (Categorie 2) - 5 producten ===
@@ -130,7 +130,7 @@ namespace CrunchyRolls.Core.Services
                     Price = 12.50m,
                     CategoryId = 2,
                     StockQuantity = 10,
-                    ImageUrl = "shoyu_ramen.jpg"
+                    ImageUrl = "shoyu_ramen"
                 },
                 new Product
                 {
@@ -140,7 +140,7 @@ namespace CrunchyRolls.Core.Services
                     Price = 13.00m,
                     CategoryId = 2,
                     StockQuantity = 8,
-                    ImageUrl = "miso_ramen.jpg"
+                    ImageUrl = "miso_ramen"
                 },
                 new Product
                 {
@@ -150,7 +150,7 @@ namespace CrunchyRolls.Core.Services
                     Price = 14.50m,
                     CategoryId = 2,
                     StockQuantity = 12,
-                    ImageUrl = "tonkotsu_ramen.jpg"
+                    ImageUrl = "tonkotsu_ramen"
                 },
                 new Product
                 {
@@ -159,8 +159,8 @@ namespace CrunchyRolls.Core.Services
                     Description = "Pittige ramen met kimchi",
                     Price = 13.50m,
                     CategoryId = 2,
-                    StockQuantity = 0, // Niet op voorraad
-                    ImageUrl = "spicy_ramen.jpg"
+                    StockQuantity = 0,
+                    ImageUrl = "spicy_ramen"
                 },
                 new Product
                 {
@@ -170,7 +170,7 @@ namespace CrunchyRolls.Core.Services
                     Price = 11.50m,
                     CategoryId = 2,
                     StockQuantity = 15,
-                    ImageUrl = "veggie_ramen.jpg"
+                    ImageUrl = "veggie_ramen"
                 },
                 
                 // === Dranken (Categorie 3) - 5 producten ===
@@ -182,7 +182,7 @@ namespace CrunchyRolls.Core.Services
                     Price = 2.50m,
                     CategoryId = 3,
                     StockQuantity = 30,
-                    ImageUrl = "green_tea.jpg"
+                    ImageUrl = "green_tea"
                 },
                 new Product
                 {
@@ -192,7 +192,7 @@ namespace CrunchyRolls.Core.Services
                     Price = 3.00m,
                     CategoryId = 3,
                     StockQuantity = 25,
-                    ImageUrl = "ramune.jpg"
+                    ImageUrl = "ramune"
                 },
                 new Product
                 {
@@ -202,7 +202,7 @@ namespace CrunchyRolls.Core.Services
                     Price = 8.50m,
                     CategoryId = 3,
                     StockQuantity = 18,
-                    ImageUrl = "sake.jpg"
+                    ImageUrl = "sake"
                 },
                 new Product
                 {
@@ -212,7 +212,7 @@ namespace CrunchyRolls.Core.Services
                     Price = 4.50m,
                     CategoryId = 3,
                     StockQuantity = 20,
-                    ImageUrl = "matcha_latte.jpg"
+                    ImageUrl = "matcha_latte"
                 },
                 new Product
                 {
@@ -222,7 +222,7 @@ namespace CrunchyRolls.Core.Services
                     Price = 3.50m,
                     CategoryId = 3,
                     StockQuantity = 22,
-                    ImageUrl = "yuzu_lemonade.jpg"
+                    ImageUrl = "yuzu_lemonade"
                 },
                 
                 // === Desserts (Categorie 4) - 5 producten ===
@@ -234,7 +234,7 @@ namespace CrunchyRolls.Core.Services
                     Price = 4.50m,
                     CategoryId = 4,
                     StockQuantity = 12,
-                    ImageUrl = "mochi.jpg"
+                    ImageUrl = "mochi"
                 },
                 new Product
                 {
@@ -244,7 +244,7 @@ namespace CrunchyRolls.Core.Services
                     Price = 3.75m,
                     CategoryId = 4,
                     StockQuantity = 18,
-                    ImageUrl = "dorayaki.jpg"
+                    ImageUrl = "dorayaki"
                 },
                 new Product
                 {
@@ -254,7 +254,7 @@ namespace CrunchyRolls.Core.Services
                     Price = 4.00m,
                     CategoryId = 4,
                     StockQuantity = 14,
-                    ImageUrl = "taiyaki.jpg"
+                    ImageUrl = "taiyaki"
                 },
                 new Product
                 {
@@ -263,8 +263,8 @@ namespace CrunchyRolls.Core.Services
                     Description = "Groene thee ijs",
                     Price = 5.50m,
                     CategoryId = 4,
-                    StockQuantity = 0, // Niet op voorraad
-                    ImageUrl = "matcha_ice_cream.jpg"
+                    StockQuantity = 0,
+                    ImageUrl = "matcha_ice_cream"
                 },
                 new Product
                 {
@@ -274,7 +274,7 @@ namespace CrunchyRolls.Core.Services
                     Price = 6.00m,
                     CategoryId = 4,
                     StockQuantity = 10,
-                    ImageUrl = "anmitsu.jpg"
+                    ImageUrl = "anmitsu"
                 },
                 
                 // === Voorgerechten (Categorie 5) - 5 producten ===
@@ -286,7 +286,7 @@ namespace CrunchyRolls.Core.Services
                     Price = 4.00m,
                     CategoryId = 5,
                     StockQuantity = 25,
-                    ImageUrl = "edamame.jpg"
+                    ImageUrl = "edamame"
                 },
                 new Product
                 {
@@ -296,7 +296,7 @@ namespace CrunchyRolls.Core.Services
                     Price = 6.50m,
                     CategoryId = 5,
                     StockQuantity = 20,
-                    ImageUrl = "gyoza.jpg"
+                    ImageUrl = "gyoza"
                 },
                 new Product
                 {
@@ -306,7 +306,7 @@ namespace CrunchyRolls.Core.Services
                     Price = 7.00m,
                     CategoryId = 5,
                     StockQuantity = 15,
-                    ImageUrl = "takoyaki.jpg"
+                    ImageUrl = "takoyaki"
                 },
                 new Product
                 {
@@ -315,8 +315,8 @@ namespace CrunchyRolls.Core.Services
                     Description = "Gefrituurde groenten en garnalen",
                     Price = 8.50m,
                     CategoryId = 5,
-                    StockQuantity = 0, // Niet op voorraad
-                    ImageUrl = "tempura.jpg"
+                    StockQuantity = 0,
+                    ImageUrl = "tempura"
                 },
                 new Product
                 {
@@ -326,7 +326,7 @@ namespace CrunchyRolls.Core.Services
                     Price = 7.50m,
                     CategoryId = 5,
                     StockQuantity = 18,
-                    ImageUrl = "yakitori.jpg"
+                    ImageUrl = "yakitori"
                 }
             };
         }

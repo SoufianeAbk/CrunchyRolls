@@ -62,6 +62,7 @@ namespace CrunchyRolls.Core.ViewModels
         public ICommand LoadDataCommand { get; }
         public ICommand ProductTappedCommand { get; }
         public ICommand AddToCartCommand { get; }
+        public ICommand NavigateToCartCommand { get; }
 
         public ProductsViewModel(ProductService productService, OrderService orderService)
         {
@@ -73,6 +74,7 @@ namespace CrunchyRolls.Core.ViewModels
             LoadDataCommand = new Command(async () => await LoadDataAsync());
             ProductTappedCommand = new Command<Product>(OnProductTapped);
             AddToCartCommand = new Command<Product>(OnAddToCart);
+            NavigateToCartCommand = new Command(async () => await OnNavigateToCart());
         }
 
         public async Task LoadDataAsync()
@@ -168,6 +170,11 @@ namespace CrunchyRolls.Core.ViewModels
                 "Toegevoegd",
                 $"{product.Name} is toegevoegd aan je winkelwagen",
                 "OK");
+        }
+
+        private async Task OnNavigateToCart()
+        {
+            await Shell.Current.GoToAsync("//OrderPage");
         }
 
         // Helper method for dialog
