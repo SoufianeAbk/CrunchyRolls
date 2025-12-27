@@ -1,302 +1,266 @@
 CrunchyRolls 🍣
-Een moderne, cross-platform sushi delivery applicatie gebouwd met .NET MAUI, ontworpen voor iOS, Android, macCatalyst en Windows.
-CrunchyRolls is een volledige e-commerce applicatie voor sushi delivery met een intuïtief design en geavanceerde features. De applicatie is opgebouwd uit twee projecten met een clean architecture pattern.
+Een moderne, cross-platform sushi delivery applicatie gebouwd met .NET 9.0 en volledige integratie tussen frontend, backend en database.
 
-Projectstructuur
+📋 Inhoudsopgave
+
+Overzicht
+5 Projecten Architectuur
+Installatie
+Functionaliteiten
+API Endpoints
+
+
+🎯 Overzicht
+CrunchyRolls is een volledige e-commerce sushi delivery app met:
+✅ Cross-platform MAUI (iOS, Android, Windows, macCatalyst)
+✅ ASP.NET Core REST API met Swagger
+✅ SQL Server database met EF Core
+✅ Clean Architecture (5 gescheiden projecten)
+✅ 25 mock producten in 5 categorieën
+✅ MVVM + Repository pattern
+
+🏗️ 5 Projecten Architectuur
 CrunchyRolls.sln
-├── CrunchyRolls/                 # MAUI Frontend Application
-│   ├── Views/                    # XAML Pages (UI)
-│   ├── Resources/                # Styles, Colors, Fonts, Icons
-│   ├── Platforms/                # Platform-specifieke code (Android, iOS, Windows, macCatalyst)
-│   ├── App.xaml & App.xaml.cs   # Application entry point
-│   ├── AppShell.xaml             # Shell navigation
-│   └── MauiProgram.cs            # Dependency Injection setup
 │
-└── CrunchyRolls.Core/            # Shared Core Library
-    ├── Models/                   # Data models (Product, Order, Category, OrderItem)
-    ├── Services/                 # Business logic (ProductService, OrderService, ApiService)
-    ├── ViewModels/               # MVVM ViewModels
-    ├── Converters/               # Value converters (StatusToColor, StatusToText, etc.)
-    └── Helpers/                  # Base classes (BaseViewModel)
+├── 1️⃣ CrunchyRolls/                       🎨 MAUI Frontend
+│   ├── Views/ (MainPage, ProductsPage, OrderPage, OrderHistoryPage, ProductDetailPage)
+│   ├── Resources/ (Styles, Colors, Images)
+│   ├── Platforms/ (Android, iOS, MacCatalyst, Windows)
+│   └── MauiProgram.cs (Dependency Injection)
+│
+├── 2️⃣ CrunchyRolls.Core/                  🧠 Business Logic
+│   ├── Services/ (ApiService, ProductService, OrderService)
+│   ├── ViewModels/ (ProductsViewModel, OrderViewModel, OrderHistoryViewModel)
+│   ├── Converters/ (StatusToColor, StatusToText, ImageSourceConverter)
+│   └── Helpers/ (BaseViewModel)
+│
+├── 3️⃣ CrunchyRolls.Models/                📊 Shared Data Models
+│   ├── Entities/ (Category, Product, Order, OrderItem)
+│   ├── Enums/ (OrderStatus: Pending, Processing, Shipped, Delivered, Cancelled)
+│   └── DTOs/ (CategoryDto, ProductDto, OrderDto, OrderItemDto)
+│
+├── 4️⃣ CrunchyRolls.Data/                  💾 Database Layer (SQL Server)
+│   ├── Context/ (ApplicationDbContext - EF Core)
+│   ├── Repositories/ (IRepository, CategoryRepository, ProductRepository, OrderRepository)
+│   ├── Seeders/ (DataSeeder - 25 mock producten)
+│   └── Extensions/ (ServiceCollectionExtensions - DI setup)
+│
+└── 5️⃣ CrunchyRolls.Api/                   🌐 ASP.NET Core REST API
+    ├── Controllers/ (CategoriesController, ProductsController, OrdersController)
+    ├── Program.cs (API configuration, Swagger/OpenAPI)
+    └── appsettings.json (Connection string, Logging)
+Project Relaties
+CrunchyRolls (MAUI)
+    ↓ references
+CrunchyRolls.Core (Services & ViewModels)
+    ↓ references
+CrunchyRolls.Models (Shared DTOs & Entities)
+    
+CrunchyRolls.Api (ASP.NET Core)
+    ↓ references
+CrunchyRolls.Data (EF Core + SQL Server)
+    ↓ references
+CrunchyRolls.Models
 
-✨ Functionaliteiten & 🛍️ Product Management
+🛠️ Technische Stack
+LaagTechnologieDetailsFrontend.NET MAUIC# 12, XAML, Cross-platform (iOS, Android, Windows, macCatalyst)Business LogicServices & ViewModelsMVVM Pattern, Dependency InjectionData ModelsC# ClassesEntities, DTOs, Enums (Shared across all projects)Backend APIASP.NET Core 9.0REST JSON, Swagger/OpenAPI, CORSDatabaseSQL Server LocalDBEntity Framework Core 9.0, Code-First MigrationsArchitectureClean ArchitectureRepository Pattern, Separation of ConcernsHTTP ClientHttpClientApiService for API communication
 
-Productcatalogus met 25 mock producten verdeeld over 5 categorieën
+📦 Installatie
+Vereisten
 
-Sushi rollen (California Roll, Dragon Roll, Rainbow Roll, etc.)
-Ramen & noedelsoepen
-Japanse dranken
-Desserts (Mochi, Dorayaki, Taiyaki, etc.)
-Voorgerechten (Gyoza, Takoyaki, Tempura)
+.NET 9.0 SDK https://dotnet.microsoft.com/download
+Visual Studio 2022 v17.14+ of VS Code
+SQL Server LocalDB (installeert met Visual Studio)
+Platform SDKs: Xcode (iOS), Android SDK (Android)
+
+Setup (5 stappen)
+bash 1. Clone repository
+git clone <https://github.com/SoufianeAbk/CrunchyRolls>
+cd CrunchyRolls
+
+ 2. Restore dependencies
+dotnet restore
+
+ 3. Database wordt automatisch aangemaakt bij API start
+cd CrunchyRolls.Api
+dotnet run
+ Swagger UI: http://localhost:5000/swagger
+
+ 4. MAUI Frontend starten (ander terminal)
+cd CrunchyRolls
+dotnet run -f net9.0-windows10.0.19041.0  # Windows
+# of
+dotnet run -f net9.0-android              # Android
+# of
+dotnet run -f net9.0-ios                  # iOS (macOS only)
+
+ 5. Klaar! 🎉
+Opmerking: API en MAUI draait op verschillende poorten. API haalt mock data totdat je API connection inschakelt.
+
+🏗️ Architectuur
+┌─────────────────────────┐
+│   MAUI Frontend         │  Views (XAML) ←→ ViewModels (MVVM)
+│   (CrunchyRolls)        │       ↓
+└────────────┬────────────┘   Commands
+             │                   ↓
+             └──→ Services ──→ ApiService
+                  (Core)         ↓
+                                HTTP
+                                 ↓
+┌─────────────────────────┐
+│   ASP.NET Core API      │  Controllers → Repositories
+│  (CrunchyRolls.Api)     │       ↓
+└────────────┬────────────┘   LINQ to SQL
+             │                   ↓
+             └──→ EF Core ────→ SQL Server
+                  (Data)      Database
+Data Flow
+User Action → View → ViewModel → Service → API Controller → Repository → Database
+Database
+
+SQL Server LocalDB (Development)
+4 Main Tables: Categories, Products, Orders, OrderItems
+Relationships: Category ← Products, Orders → OrderItems ← Products
+Automatic Seeding: 25 mock products (5 categories × 5 products)
 
 
-Categorie filtering - Snel door categorieën navigeren
-Zoekfunctionaliteit - Producten zoeken op naam en beschrijving
-Voorraadstatus - Realtime zichtbaarheid van product beschikbaarheid
+🎯 Functionaliteiten
+🛍️ Producten & Categorieën
 
-🛒 Shopping Cart
+25 mock producten in 5 categorieën (Sushi, Ramen, Dranken, Desserts, Voorgerechten)
+Categorie filtering & zoekfunctionaliteit
+Realtime voorraad status
+Product detail pagina met afbeelding, prijs, beschrijving
 
-Toevoegen/verwijderen van producten aan/van winkelwagen
-Hoeveelheid aanpassen met increment/decrement buttons
-Automatische berekening van subtotaal en cartmtotaal
-Winkelwagen beheer - Leegmaken of individuele items verwijderen
-Persistente opslag - Cart items in geheugen behouden
+🛒 Winkelwagen
+
+Add/Remove items, update quantity
+Automatische totaal berekening
+Cart persistent in geheugen
+Clear cart functionaliteit
 
 📦 Order Management
 
-Klantgegevens - Naam, email, bezorgadres invoer
-Order aanmaken - Bestellingen plaatsen met validatie
-Order ID generatie - Unieke ID's (1001+)
-Voorraad integratie - Order items koppelen aan product stock
-Status tracking - Order statussen: Pending, Processing, Shipped, Delivered, Cancelled
+Bestellingen plaatsen met validatie (naam, email, adres)
+Unique order IDs (1001+)
+Status tracking: Pending → Processing → Shipped → Delivered
+Order verwijdering (niet Delivered status)
 
 📊 Order History
 
-Bestellingsgeschiedenis - Alle bestellingen bekijken (gesorteerd op datum)
-Statistieken - Totaal aantal bestellingen en totaal besteed
-Order details - Tik op bestelling voor volledige informatie
-Order verwijdering - Bestellingen (behalve Delivered) uit geschiedenis verwijderen
-Status visualisatie - Kleurgecodeerde status badges
+Alle bestellingen gesorteerd op datum
+Statistieken: Totaal bestellingen & totaal besteed
+Order details op tik
+Kleurgecodeerde status badges
+Pull-to-refresh
 
-🎨 User Interface
+🎨 UI/UX
 
-Dark theme - Premium dark mode design met gouden accenten
-Responsive layout - Optimaal voor alle schermformaten
-Hero sectie - Aantrekkelijke landing page
-Value propositions - Visueel aantrekkelijke trust signals
-Emoji decoraties - Speelse, moderne UI elements
-Toast/Alert dialogen - User feedback systeem
-
-🌍 Cross-platform Support
-
-Android - Volledige ondersteuning
-iOS - Native iOS integratie
-macCatalyst - Mac app variant
-Windows - UWP/WinUI support
+Dark theme met gouden accenten
+Responsive design (iOS, Android, Windows)
+Hero section, trust signals, emoji decoraties
+Toast/Alert dialogen voor feedback
 
 
-🛠️ Technische Stack
-Framework & Talen
+🌐 API Endpoints
+Base URL: http://localhost:5000/api (Development)
+Swagger: http://localhost:5000/swagger
+Categories
+httpGET     /api/categories                      # Alle categorieën
+GET     /api/categories/{id}                 # Met producten
+GET     /api/categories/search?name=         # Zoeken
+POST    /api/categories                      # Create
+PUT     /api/categories/{id}                 # Update
+DELETE  /api/categories/{id}                 # Delete (cascade)
+Products
+httpGET     /api/products                        # Alle producten
+GET     /api/products/{id}                   # Product detail
+GET     /api/products/category/{categoryId}  # Per categorie
+GET     /api/products/search?term=           # Zoeken
+GET     /api/products/instock                # Alleen beschikbaar
+POST    /api/products                        # Create
+PUT     /api/products/{id}                   # Update
+DELETE  /api/products/{id}                   # Delete
+Orders
+httpGET     /api/orders                          # Alle orders
+GET     /api/orders/{id}                     # Met items
+GET     /api/orders/customer/{email}         # Per klant
+GET     /api/orders/status/{status}          # Per status
+GET     /api/orders/recent?count=10          # Recente
+GET     /api/orders/revenue                  # Totale inkomsten
+POST    /api/orders                          # Create
+PUT     /api/orders/{id}/status              # Update status
+DELETE  /api/orders/{id}                     # Delete
 
-.NET 9.0 - Latest .NET framework
-C# 12 - Modern C# syntax
-.NET MAUI - Cross-platform UI framework
+💾 Database Schema
+sqlCategories        Products          Orders           OrderItems
+│ Id              │ Id              │ Id             │ Id
+│ Name            │ Name            │ OrderDate      │ OrderId (FK)
+│ Description     │ Price           │ CustomerName   │ ProductId (FK)
+└──────────────────│ CategoryId (FK) │ CustomerEmail  │ Quantity
+                  │ StockQuantity   │ DeliveryAddr   │ UnitPrice
+                  │                 │ Status (Enum)  └─────────
+                  └─────────────────└────────────────
+Relationships: Category ← Products, Orders → OrderItems → Products
 
-Architecture Patterns
+🚀 Quick Start Commands
+bash# Complete setup
+git clone <https://github.com/SoufianeAbk/CrunchyRolls> && cd CrunchyRolls
+dotnet restore
+cd CrunchyRolls.Api && dotnet run &        # API in background
+cd ../CrunchyRolls && dotnet run -f net9.0-windows10.0.19041.0
 
-MVVM (Model-View-ViewModel) - Clean separation of concerns
-Dependency Injection - Services registration in MauiProgram
-Repository Pattern - Service layer abstraction (ProductService, OrderService)
-Observer Pattern - INotifyPropertyChanged for data binding
+# Database only
+cd CrunchyRolls.Api && dotnet ef database update --startup-project .
 
-Libraries & Packages
+# Clean build
+dotnet clean && dotnet restore && dotnet build
 
-Microsoft.Maui.Controls - UI components
-System.ComponentModel - MVVM foundation
-System.Net.Http - API communication (ready for real backend)
+📝 Configuration
+API Connection (CrunchyRolls.Core/Services/ApiService.cs)
+csharp// Dev
+_baseUrl = "http://localhost:5000/api";
 
-Styling & Theming
-
-XAML Resource Dictionaries - Centralized styling
-AppThemeBinding - Light/dark mode support
-Custom Converters - Value converters for data transformation
-
-StatusToColorConverter - Order status → color
-StatusToTextConverter - Order status → Dutch text
-StatusToCancelVisibilityConverter - Visibility logic
-InvertedBoolConverter - Boolean inversion
-IsNotZeroConverter - Zero checking
-
-
-
-
-📱 Pages & Navigation
-Tab-based Shell Navigation
-TabPageFunctionaliteit🏠 HomeMainPageLanding page met hero, speciale aanbiedingen, categorieën📦 ProductenProductsPageProductcatalogus met filtering en zoeken🛒 WinkelwagenOrderPageWinkelwagen beheer en checkout📋 BestellingenOrderHistoryPageOrder history en statistieken
-Modal Navigation
-
-ProductDetailPage - Product details, hoeveelheid selector, add-to-cart
-
-
-🏗️ Services & ViewModels
-Services (Core Business Logic)
-ProductService
-csharp- GetCategoriesAsync() → List<Category>
-- GetProductsAsync() → List<Product>
-- GetProductsByCategoryAsync(categoryId) → List<Product>
-- GetProductByIdAsync(productId) → Product
-- Implementeert mock data (25 producten, 5 categorieën)
-OrderService
-csharp- AddToCart(product, quantity)
-- RemoveFromCart(productId)
-- UpdateQuantity(productId, quantity)
-- GetCartItems() → List<OrderItem>
-- ClearCart()
-- CreateOrderAsync(name, email, address) → Order
-- GetOrderHistoryAsync() → List<Order>
-- UpdateOrderStatusAsync(orderId, status)
-- CancelOrderAsync(orderId)
-- DeleteOrderAsync(orderId)
-- GetTotalOrdersCount(), GetTotalSpent(), GetRecentOrders()
-ApiService
-csharp- GetAsync<T>(endpoint)
-- PostAsync<TRequest, TResponse>(endpoint, data)
-- PutAsync<T>(endpoint, data)
-- DeleteAsync(endpoint)
-- Klaar voor echte API integratie
-ViewModels
-ProductsViewModel
-
-Producten & categorieën laden
-Filtering (categorie + zoekterm)
-Product detail navigatie
-Add-to-cart directe functie
-
-ProductDetailViewModel
-
-Product details display
-Hoeveelheid beheer (increment/decrement)
-Stock validatie
-Add-to-cart met feedback
-
-OrderViewModel
-
-Winkelwagen management
-Item verwijdering
-Hoeveelheid aanpassing
-Klantgegevens validatie
-Order placement met error handling
-
-OrderHistoryViewModel
-
-Order history laden
-Statistieken berekening
-Order detail view
-Order verwijdering (DeleteOrderAsync)
-Refresh functionaliteit
-
-
-🎯 Data Models
-Category
-csharppublic class Category
-{
-    public int Id { get; set; }
-    public string Name { get; set; }
-    public string Description { get; set; }
-    public List<Product> Products { get; set; }
-}
-Product
-csharppublic class Product
-{
-    public int Id { get; set; }
-    public string Name { get; set; }
-    public string Description { get; set; }
-    public decimal Price { get; set; }
-    public string ImageUrl { get; set; }
-    public int CategoryId { get; set; }
-    public Category? Category { get; set; }
-    public int StockQuantity { get; set; }
-    public bool IsInStock => StockQuantity > 0;
-}
-Order & OrderItem
-csharppublic class Order
-{
-    public int Id { get; set; }
-    public DateTime OrderDate { get; set; }
-    public string CustomerName { get; set; }
-    public string CustomerEmail { get; set; }
-    public string DeliveryAddress { get; set; }
-    public OrderStatus Status { get; set; }
-    public List<OrderItem> OrderItems { get; set; }
-    public decimal TotalAmount => OrderItems.Sum(item => item.SubTotal);
+Production
+_baseUrl = "https://your-api-domain.com/api";
+Database Connection (CrunchyRolls.Api/appsettings.json)
+json{
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=(local);Database=CrunchyRolls;Trusted_Connection=True;TrustServerCertificate=True;"
+  }
 }
 
-public enum OrderStatus { Pending, Processing, Shipped, Delivered, Cancelled }
+💡 Features & Data
+25 Mock Products (Seeded Automatically)
 
-public class OrderItem
-{
-    public int Id { get; set; }
-    public int OrderId { get; set; }
-    public int ProductId { get; set; }
-    public Product? Product { get; set; }
-    public int Quantity { get; set; }
-    public decimal UnitPrice { get; set; }
-    public decimal SubTotal => Quantity * UnitPrice;
-}
+Sushi (5): California Roll, Salmon Nigiri, Tuna Roll, Dragon Roll, Rainbow Roll
+Ramen (5): Shoyu, Miso, Tonkotsu, Spicy, Vegetarian
+Dranken (5): Green Tea, Ramune, Sake, Matcha Latte, Yuzu Limonade
+Desserts (5): Mochi, Dorayaki, Taiyaki, Matcha Ice Cream, Anmitsu
+Voorgerechten (5): Edamame, Gyoza, Takoyaki, Tempura Mix, Yakitori
 
-🚀 Getting Started
-Vereisten
+Order Status Enum
 
-.NET 9.0 SDK of hoger
-Visual Studio 2022 (v17.14+) of Visual Studio Code
-Platform-specifieke requirements (Xcode voor iOS, Android SDK voor Android)
+Pending (0) - Zojuist geplaatst
+Processing (1) - In keuken
+Shipped (2) - Onderweg
+Delivered (3) - Afgeleverd
+Cancelled (4) - Geannuleerd
 
-Installatie
-Repository klonen
 
-bash git clone <repository-url>
-cd CrunchyRolls
+🔄 Switching to Real API
 
-Dependencies herstellen
+Uncomment API calls in CrunchyRolls.Core/Services/OrderService.cs
+Set _useMockData = false in ProductService.cs
+Update API base URL in ApiService.cs
+Ensure API is running
 
-bash   dotnet restore
-Project openen
+🎓 Learning Resources
 
-bash   Visual Studio
-   start CrunchyRolls.sln
-   
-   Of via commandline
-   dotnet build
+MVVM Pattern: https://learn.microsoft.com/en-us/dotnet/maui/
+EF Core: https://learn.microsoft.com/en-us/ef/core/
+ASP.NET Core: https://learn.microsoft.com/en-us/aspnet/core/
+.NET MAUI: https://github.com/dotnet/maui
 
-Applicatie starten
-
-bash Windows
-   dotnet run -f net9.0-windows10.0.19041.0
-   
-   Android
-   dotnet run -f net9.0-android
-   
-   iOS (macOS alleen)
-   dotnet run -f net9.0-ios
-
-📊 Mock Data
-De applicatie bevat 25 mock producten:
-Categorieën
-
-Sushi (5 producten) - €6,75 - €14,00
-Ramen (5 producten) - €11,50 - €14,50
-Dranken (5 producten) - €2,50 - €8,50
-Desserts (5 producten) - €3,75 - €6,00
-Voorgerechten (5 producten) - €4,00 - €8,50
-
-Enkele items uit voorraad ter demonstratie (Tuna Roll, Spicy Ramen, Tempura Mix, Matcha Ice Cream).
-
-🔄 API Integratie
-Het systeem is voorbereikt voor echte API integratie:
-
-Pas ApiService base URL aan in ApiService.cs:
-csharp   _baseUrl = "https://your-api-url.com/api";
-Wijzig useMockData vlag in ProductService.cs:
-csharp   private readonly bool _useMockData = false; // Zet op false
-Activeer API calls in OrderService.cs:
-csharp   // Uncomment API calls
-   var createdOrder = await _apiService.PostAsync<Order, Order>("orders", order);
-
-💡 Toekomstige Uitbreidingen
-
- Echte database integratie (SQL Server / PostgreSQL)
- User authentication (Login/Register)
- Payment gateway integratie (Stripe, PayPal)
- Real-time order tracking met maps
- Push notifications
- Favorieten/Wishlist systeem
- Coupon & discount codes
- User reviews & ratings
- Admin dashboard
- Multilingual support (Dutch, English, etc.)
-
-AI Hulp 
-
-https://chatgpt.com/c/6941be9a-0c3c-8325-9139-61eb49ad471a,
-https://chatgpt.com/c/69404b79-7b48-832c-80c1-6b937b394a61,
-https://chatgpt.com/c/6919f1d1-6114-8327-aec2-1e7c3123015c,  
+📧 Support & AI
+https://chatgpt.com/c/6941be9a-0c3c-8325-9139-61eb49ad471a, https://chatgpt.com/c/69404b79-7b48-832c-80c1-6b937b394a61, https://chatgpt.com/c/6919f1d1-6114-8327-aec2-1e7c3123015c.
