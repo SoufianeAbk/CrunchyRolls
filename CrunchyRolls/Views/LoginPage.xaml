@@ -8,7 +8,7 @@
     <ScrollView>
         <VerticalStackLayout Padding="20"
                              Spacing="15"
-                             VerticalOptions="CenterAndExpand">
+                             VerticalOptions="Center">
 
             <!-- Logo / Titel -->
             <VerticalStackLayout Spacing="10"

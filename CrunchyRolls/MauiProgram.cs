@@ -1,58 +1,132 @@
-﻿using CrunchyRolls.Core.Services;
+﻿using CrunchyRolls.Core.Authentication.Interfaces;
+using CrunchyRolls.Core.Authentication.Services;
+using CrunchyRolls.Core.Services;
 using CrunchyRolls.Core.ViewModels;
 using CrunchyRolls.Views;
-using Microsoft.Extensions.Logging;
+using System.Diagnostics;
 
-namespace CrunchyRolls;
-
-public static class MauiProgram
+namespace CrunchyRolls
 {
-    public static MauiApp CreateMauiApp()
+    /// <summary>
+    /// MAUI App initialization
+    /// Registratie van alle services, viewmodels en views
+    /// </summary>
+    public static class MauiProgram
     {
-        var builder = MauiApp.CreateBuilder();
-        builder
-            .UseMauiApp<App>()
-            .ConfigureFonts(fonts =>
+        public static MauiApp CreateMauiApp()
+        {
+            var builder = MauiApp.CreateBuilder();
+            builder
+                .UseMauiApp<App>()
+                .ConfigureFonts(fonts =>
+                {
+                    fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
+                    fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
+                });
+
+            // ===== CORE SERVICES =====
+
+            /// <summary>
+            /// API service voor backend communicatie
+            /// </summary>
+            builder.Services.AddSingleton<ApiService>();
+
+            // ===== AUTHENTICATION SERVICES (Phase 3) =====
+
+            /// <summary>
+            /// Token service voor JWT parsing en validatie
+            /// </summary>
+            builder.Services.AddSingleton<TokenService>();
+
+            /// <summary>
+            /// Veilige opslag service (OS-versleuteld)
+            /// Slaat tokens, credentials op
+            /// </summary>
+            builder.Services.AddSingleton<SecureStorageService>();
+
+            /// <summary>
+            /// Authenticatie service
+            /// Behandelt login, logout, sessie beheer
+            /// </summary>
+            builder.Services.AddSingleton<IAuthService, AuthService>();
+
+            // ===== BUSINESS SERVICES =====
+
+            /// <summary>
+            /// Product service voor producten
+            /// </summary>
+            builder.Services.AddSingleton<ProductService>();
+
+            /// <summary>
+            /// Order service voor bestellingen
+            /// </summary>
+            builder.Services.AddSingleton<OrderService>();
+
+            // Voeg hier andere services toe...
+
+            // ===== VIEW MODELS =====
+
+            /// <summary>
+            /// ViewModel voor LoginPage
+            /// </summary>
+            builder.Services.AddSingleton<LoginViewModel>();
+
+            /// <summary>
+            /// ViewModel voor ProductsPage
+            /// </summary>
+            builder.Services.AddSingleton<ProductsViewModel>();
+
+            /// <summary>
+            /// ViewModel voor OrderHistoryPage
+            /// </summary>
+            builder.Services.AddSingleton<OrderHistoryViewModel>();
+
+            // Voeg hier andere viewmodels toe...
+
+            // ===== VIEWS / PAGES =====
+
+            /// <summary>
+            /// Login pagina
+            /// </summary>
+            builder.Services.AddSingleton<LoginPage>();
+
+            /// <summary>
+            /// Products pagina
+            /// </summary>
+            builder.Services.AddSingleton<ProductsPage>();
+
+            /// <summary>
+            /// Order history pagina
+            /// </summary>
+            builder.Services.AddSingleton<OrderHistoryPage>();
+
+            // Voeg hier andere pages toe...
+
+            // ===== BUILD APP =====
+
+            var mauiApp = builder.Build();
+
+            // ===== INITIALISATIE =====
+
+            // Initialiseer authenticatie wanneer app start
+            MainThread.BeginInvokeOnMainThread(async () =>
             {
-                fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
-                fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
+                try
+                {
+                    var authService = mauiApp.Services.GetRequiredService<IAuthService>();
+
+                    Debug.WriteLine("🔐 Authenticatie initialiseren bij app start...");
+                    await authService.InitializeAsync();
+
+                    Debug.WriteLine("✅ App gefinaliseerd");
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"❌ Fout bij app initialisatie: {ex.Message}");
+                }
             });
 
-        // ===== LOGGING SETUP =====
-#if DEBUG
-        builder
-            .Services
-            .AddLogging(logging =>
-            {
-                logging.AddDebug();
-                logging.SetMinimumLevel(LogLevel.Information);
-                logging.AddFilter("CrunchyRolls", LogLevel.Debug);
-            });
-#endif
-
-        // ===== SERVICE REGISTRATION =====
-        // Register ApiService as singleton (will create HttpClient internally)
-        builder.Services.AddSingleton<ApiService>();
-
-        builder.Services.AddSingleton<ProductService>();
-        builder.Services.AddSingleton<OrderService>();
-
-        // ===== VIEWMODEL REGISTRATION =====
-        builder.Services.AddTransient<ProductsViewModel>();
-        builder.Services.AddTransient<ProductDetailViewModel>();
-        builder.Services.AddTransient<OrderViewModel>();
-        builder.Services.AddTransient<OrderHistoryViewModel>();
-
-        // ===== VIEW REGISTRATION =====
-        builder.Services.AddSingleton<MainPage>();
-        builder.Services.AddTransient<ProductsPage>();
-        builder.Services.AddTransient<ProductDetailPage>();
-        builder.Services.AddTransient<OrderPage>();
-        builder.Services.AddTransient<OrderHistoryPage>();
-
-        // ===== APP SHELL =====
-        builder.Services.AddSingleton<AppShell>();
-
-        return builder.Build();
+            return mauiApp;
+        }
     }
 }

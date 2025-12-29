@@ -1,4 +1,5 @@
 ﻿using CrunchyRolls.Core.Authentication.Interfaces;
+using CrunchyRolls.Views;
 using System.Diagnostics;
 
 namespace CrunchyRolls
@@ -83,7 +84,7 @@ namespace CrunchyRolls
                 {
                     try
                     {
-                        await Shell.Current.GoToAsync("login");
+                        await Shell.Current.GoToAsync("//login");
                     }
                     catch (Exception ex)
                     {
