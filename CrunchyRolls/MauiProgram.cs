@@ -62,8 +62,6 @@ namespace CrunchyRolls
             /// </summary>
             builder.Services.AddSingleton<OrderService>();
 
-            // Voeg hier andere services toe...
-
             // ===== VIEW MODELS =====
 
             /// <summary>
@@ -77,11 +75,19 @@ namespace CrunchyRolls
             builder.Services.AddSingleton<ProductsViewModel>();
 
             /// <summary>
+            /// ViewModel voor OrderPage (Winkelwagen)
+            /// </summary>
+            builder.Services.AddSingleton<OrderViewModel>();
+
+            /// <summary>
             /// ViewModel voor OrderHistoryPage
             /// </summary>
             builder.Services.AddSingleton<OrderHistoryViewModel>();
 
-            // Voeg hier andere viewmodels toe...
+            /// <summary>
+            /// ViewModel voor ProductDetailPage
+            /// </summary>
+            builder.Services.AddSingleton<ProductDetailViewModel>();
 
             // ===== VIEWS / PAGES =====
 
@@ -96,11 +102,19 @@ namespace CrunchyRolls
             builder.Services.AddSingleton<ProductsPage>();
 
             /// <summary>
+            /// Order/Cart pagina
+            /// </summary>
+            builder.Services.AddSingleton<OrderPage>();
+
+            /// <summary>
             /// Order history pagina
             /// </summary>
             builder.Services.AddSingleton<OrderHistoryPage>();
 
-            // Voeg hier andere pages toe...
+            /// <summary>
+            /// Product detail pagina
+            /// </summary>
+            builder.Services.AddSingleton<ProductDetailPage>();
 
             // ===== BUILD APP =====
 

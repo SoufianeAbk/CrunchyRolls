@@ -1,4 +1,6 @@
+﻿using CrunchyRolls.Core.Authentication.Interfaces;
 using CrunchyRolls.Core.ViewModels;
+using System.Diagnostics;
 
 namespace CrunchyRolls.Views
 {
@@ -11,8 +13,20 @@ namespace CrunchyRolls.Views
         {
             InitializeComponent();
 
-            // Bind ViewModel aan page
-            this.BindingContext = new LoginViewModel();
+            // Haal AuthService op van DI container
+            var authService = Application.Current?.Handler.MauiContext?.Services
+                .GetService<IAuthService>();
+
+            if (authService != null)
+            {
+                // Bind ViewModel aan page met service injection
+                this.BindingContext = new LoginViewModel(authService);
+                Debug.WriteLine("✅ LoginPage initialized with AuthService");
+            }
+            else
+            {
+                Debug.WriteLine("❌ AuthService not available in LoginPage");
+            }
         }
 
         /// <summary>
@@ -21,7 +35,7 @@ namespace CrunchyRolls.Views
         protected override void OnAppearing()
         {
             base.OnAppearing();
-            System.Diagnostics.Debug.WriteLine("?? LoginPage verschenen");
+            Debug.WriteLine("📱 LoginPage verschenen");
         }
     }
 }

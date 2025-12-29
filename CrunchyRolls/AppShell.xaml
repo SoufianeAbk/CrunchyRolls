@@ -3,40 +3,38 @@
     x:Class="CrunchyRolls.AppShell"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:local="clr-namespace:CrunchyRolls.Views"
     FlyoutBehavior="Disabled">
 
-    <!-- Login Page Route -->
+    <!-- ===== LOGIN ROUTE ===== -->
     <ShellContent
         Title="Login"
         ContentTemplate="{DataTemplate local:LoginPage}"
         Route="login" />
 
-    <!-- Tabbladen voor ingelogde gebruikers -->
+    <!-- ===== MAIN APP ROUTES (Tabbed Interface) ===== -->
     <TabBar x:Name="MainTabs" IsVisible="False">
 
+        <!-- Producten Tab -->
         <ShellContent 
             Title="Producten" 
             Icon="shop.png"
             ContentTemplate="{DataTemplate local:ProductsPage}"
             Route="producten" />
 
+        <!-- Winkelwagen Tab (uses OrderPage) -->
         <ShellContent 
             Title="Winkelwagen" 
             Icon="cart.png"
-            ContentTemplate="{DataTemplate local:CartPage}"
+            ContentTemplate="{DataTemplate local:OrderPage}"
             Route="cart" />
 
+        <!-- Bestellingen Tab (uses OrderHistoryPage) -->
         <ShellContent 
-            Title="Mijn Bestellingen" 
+            Title="Bestellingen" 
             Icon="orders.png"
-            ContentTemplate="{DataTemplate local:OrdersPage}"
+            ContentTemplate="{DataTemplate local:OrderHistoryPage}"
             Route="orders" />
-
-        <ShellContent 
-            Title="Profiel" 
-            Icon="profile.png"
-            ContentTemplate="{DataTemplate local:ProfilePage}"
-            Route="profile" />
 
     </TabBar>
 
