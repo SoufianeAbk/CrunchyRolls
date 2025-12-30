@@ -1,5 +1,6 @@
 ﻿using CrunchyRolls.Core.Authentication.Interfaces;
 using CrunchyRolls.Core.Authentication.Models;
+using CrunchyRolls.Core.Helpers;
 using System.Diagnostics;
 using System.Windows.Input;
 
@@ -24,19 +25,29 @@ namespace CrunchyRolls.Core.ViewModels
         public string Email
         {
             get => _email;
-            set => SetProperty(ref _email, value);
+            set
+            {
+                if (SetProperty(ref _email, value))
+                {
+                    // Refresh CanExecute wanneer Email verandert
+                    if (LoginCommand is AsyncRelayCommand cmd)
+                        cmd.RaiseCanExecuteChanged();
+                }
+            }
         }
 
         public string Password
         {
             get => _password;
-            set => SetProperty(ref _password, value);
-        }
-
-        public bool RememberMe
-        {
-            get => _rememberMe;
-            set => SetProperty(ref _rememberMe, value);
+            set
+            {
+                if (SetProperty(ref _password, value))
+                {
+                    // Refresh CanExecute wanneer Password verandert
+                    if (LoginCommand is AsyncRelayCommand cmd)
+                        cmd.RaiseCanExecuteChanged();
+                }
+            }
         }
 
         public string ErrorMessage
@@ -67,7 +78,7 @@ namespace CrunchyRolls.Core.ViewModels
             Title = "Inloggen";
 
             // Commands initialiseren
-            LoginCommand = new Command(async () => await OnLoginAsync(), CanLogin);
+            LoginCommand = new AsyncRelayCommand(OnLoginAsync, CanLogin);
             RegisterCommand = new Command(OnRegisterAsync);
             TestApiCommand = new Command(async () => await TestApiConnectionAsync());
 
@@ -326,7 +337,7 @@ namespace CrunchyRolls.Core.ViewModels
         {
             Email = string.Empty;
             Password = string.Empty;
-            RememberMe = false;
+            _rememberMe = false;
             ErrorMessage = string.Empty;
         }
 

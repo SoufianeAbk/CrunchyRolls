@@ -76,7 +76,7 @@
 
             <!-- Onthoud mij -->
             <HorizontalStackLayout Spacing="10" Margin="0,5">
-                <CheckBox IsChecked="{Binding RememberMe}" />
+                <CheckBox IsChecked="{Binding RememberMe, Mode=TwoWay}" />
                 <Label Text="Onthoud mij"
                        FontSize="12"
                        TextColor="#666"
