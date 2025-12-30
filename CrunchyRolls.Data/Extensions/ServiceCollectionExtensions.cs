@@ -17,7 +17,7 @@ namespace CrunchyRolls.Data.Extensions
         {
             // DbContext registratie
             services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlServer(connectionString));
+                options.UseSqlite(connectionString));
 
             // Repository registraties
             services.AddScoped<ICategoryRepository, CategoryRepository>();

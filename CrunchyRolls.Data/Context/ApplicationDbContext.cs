@@ -11,6 +11,7 @@ namespace CrunchyRolls.Data.Context
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
+
         {
         }
 
