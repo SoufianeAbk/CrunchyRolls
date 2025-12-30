@@ -9,24 +9,15 @@ namespace CrunchyRolls.Views
     /// </summary>
     public partial class LoginPage : ContentPage
     {
-        public LoginPage()
+        private readonly IAuthService _authService;
+
+        // ✅ AuthService wordt geïnjecteerd door DI container
+        public LoginPage(IAuthService authService)
         {
             InitializeComponent();
-
-            // Haal AuthService op van DI container
-            var authService = Application.Current?.Handler.MauiContext?.Services
-                .GetService<IAuthService>();
-
-            if (authService != null)
-            {
-                // Bind ViewModel aan page met service injection
-                this.BindingContext = new LoginViewModel(authService);
-                Debug.WriteLine("✅ LoginPage initialized with AuthService");
-            }
-            else
-            {
-                Debug.WriteLine("❌ AuthService not available in LoginPage");
-            }
+            _authService = authService;
+            this.BindingContext = new LoginViewModel(_authService);
+            Debug.WriteLine("✅ LoginPage initialized");
         }
 
         /// <summary>

@@ -1,5 +1,8 @@
 ﻿using CrunchyRolls.Data.Context;
 using CrunchyRolls.Data.Extensions;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,6 +20,42 @@ if (string.IsNullOrEmpty(connectionString))
 // Add DbContext en Repositories
 builder.Services.AddDataServices(connectionString);
 
+// ===== JWT Authentication =====
+var jwtSecret = builder.Configuration["Jwt:Secret"];
+var jwtIssuer = builder.Configuration["Jwt:Issuer"];
+var jwtAudience = builder.Configuration["Jwt:Audience"];
+
+if (string.IsNullOrEmpty(jwtSecret))
+{
+    jwtSecret = "VeryLongSecretKeyForJWTTokenGenerationThatIsAtLeast32CharactersLong!@#";
+    Console.WriteLine("⚠️ Using default JWT secret - set in appsettings.json in production");
+}
+
+var key = Encoding.ASCII.GetBytes(jwtSecret);
+
+builder.Services
+    .AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    })
+    .AddJwtBearer(options =>
+    {
+        options.RequireHttpsMetadata = false; // Development only!
+        options.SaveToken = true;
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(key),
+            ValidateIssuer = true,
+            ValidIssuer = jwtIssuer ?? "CrunchyRolls",
+            ValidateAudience = true,
+            ValidAudience = jwtAudience ?? "CrunchyRollsApp",
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.Zero
+        };
+    });
+
 // Add Controllers
 builder.Services.AddControllers();
 
@@ -29,6 +68,32 @@ builder.Services.AddSwaggerGen(options =>
         Title = "CrunchyRolls API",
         Version = "v1",
         Description = "API voor CrunchyRolls Sushi Delivery Platform"
+    });
+
+    // Add JWT Security Definition
+    options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    {
+        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+        Description = "Please enter a valid token",
+        Name = "Authorization",
+        Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
+        BearerFormat = "JWT",
+        Scheme = "Bearer"
+    });
+
+    options.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+    {
+        {
+            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            {
+                Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                {
+                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] { }
+        }
     });
 });
 
@@ -70,10 +135,11 @@ app.UseSwaggerUI(options =>
 // HTTPS Redirection
 app.UseHttpsRedirection();
 
-// CORS
+// CORS (must be before UseAuthentication)
 app.UseCors("AllowAll");
 
-// Authorization
+// ===== Authentication & Authorization =====
+app.UseAuthentication();  // ← ADD THIS
 app.UseAuthorization();
 
 // Map Controllers

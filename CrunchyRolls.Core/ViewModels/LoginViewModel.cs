@@ -8,6 +8,7 @@ namespace CrunchyRolls.Core.ViewModels
     /// <summary>
     /// ViewModel voor inlogpagina
     /// Behandelt inloglogica en formuliervalidatie
+    /// VERBETERD: Beter error handling en debugging
     /// </summary>
     public class LoginViewModel : BaseViewModel
     {
@@ -57,6 +58,7 @@ namespace CrunchyRolls.Core.ViewModels
         // Commands
         public ICommand LoginCommand { get; }
         public ICommand RegisterCommand { get; }
+        public ICommand TestApiCommand { get; }
 
         public LoginViewModel(IAuthService authService)
         {
@@ -67,6 +69,7 @@ namespace CrunchyRolls.Core.ViewModels
             // Commands initialiseren
             LoginCommand = new Command(async () => await OnLoginAsync(), CanLogin);
             RegisterCommand = new Command(OnRegisterAsync);
+            TestApiCommand = new Command(async () => await TestApiConnectionAsync());
 
             // Events abonneren
             _authService.LoginSucceeded += OnLoginSucceeded;
@@ -76,18 +79,60 @@ namespace CrunchyRolls.Core.ViewModels
         }
 
         /// <summary>
+        /// Test of API bereikbaar is
+        /// </summary>
+        private async Task TestApiConnectionAsync()
+        {
+            try
+            {
+                Debug.WriteLine("🔧 TEST: Controleren API verbinding...");
+                IsBusy = true;
+                ErrorMessage = "Testing API connection...";
+
+                // Probeer een simpele GET naar categories
+                using (var client = new HttpClient())
+                {
+                    var url = "http://localhost:5000/api/categories";
+                    Debug.WriteLine($"🔧 TEST: Contacting {url}");
+
+                    var response = await client.GetAsync(url);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        ErrorMessage = $"✅ API Succesvol bereikt! Status: {response.StatusCode}";
+                        Debug.WriteLine("✅ API is bereikbaar!");
+                    }
+                    else
+                    {
+                        ErrorMessage = $"❌ API Error: {response.StatusCode} {response.ReasonPhrase}";
+                        Debug.WriteLine($"❌ API Error: {response.StatusCode}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                ErrorMessage = $"❌ API Onbereikbaar: {ex.Message}";
+                Debug.WriteLine($"❌ TEST Exception: {ex.Message}\n{ex.StackTrace}");
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
+
+        /// <summary>
         /// Wordt aangeroepen wanneer pagina zichtbaar wordt
         /// </summary>
         public async Task OnAppearingAsync()
         {
             try
             {
+                Debug.WriteLine("📱 LoginPage OnAppearing - checking auth status");
+
                 // Controleer of al ingelogd
                 if (_authService.IsAuthenticated)
                 {
                     Debug.WriteLine("✅ Gebruiker al ingelogd - navigeer naar producten");
-
-                    // Navigeer naar producten
                     await Shell.Current.GoToAsync("//producten");
                 }
             }
@@ -104,8 +149,13 @@ namespace CrunchyRolls.Core.ViewModels
         /// </summary>
         private async Task OnLoginAsync()
         {
+            Debug.WriteLine("🔐 LoginCommand triggered!");
+
             if (!ValidateInput())
+            {
+                Debug.WriteLine("❌ Input validation failed");
                 return;
+            }
 
             try
             {
@@ -113,8 +163,11 @@ namespace CrunchyRolls.Core.ViewModels
                 ErrorMessage = string.Empty;
 
                 Debug.WriteLine($"🔐 Poging inloggen voor {Email}...");
+                Debug.WriteLine($"🔐 AuthService IsAuthenticated: {_authService.IsAuthenticated}");
 
                 var response = await _authService.LoginAsync(Email, Password);
+
+                Debug.WriteLine($"🔐 LoginAsync response: Success={response.Success}, Message={response.Message}");
 
                 if (response.Success)
                 {
@@ -131,6 +184,7 @@ namespace CrunchyRolls.Core.ViewModels
             {
                 ErrorMessage = $"Fout: {ex.Message}";
                 Debug.WriteLine($"❌ Uitzondering tijdens inloggen: {ex.Message}");
+                Debug.WriteLine($"❌ Stack trace: {ex.StackTrace}");
             }
             finally
             {
@@ -143,30 +197,37 @@ namespace CrunchyRolls.Core.ViewModels
         /// </summary>
         private bool ValidateInput()
         {
+            Debug.WriteLine("🔍 Validating input...");
+
             if (string.IsNullOrWhiteSpace(Email))
             {
                 ErrorMessage = "Vul je email in";
+                Debug.WriteLine("❌ Email is empty");
                 return false;
             }
 
             if (!Email.Contains("@"))
             {
                 ErrorMessage = "Voer een geldig email adres in";
+                Debug.WriteLine("❌ Email format invalid");
                 return false;
             }
 
             if (string.IsNullOrWhiteSpace(Password))
             {
                 ErrorMessage = "Voer je wachtwoord in";
+                Debug.WriteLine("❌ Password is empty");
                 return false;
             }
 
             if (Password.Length < 6)
             {
                 ErrorMessage = "Wachtwoord moet minstens 6 tekens zijn";
+                Debug.WriteLine("❌ Password too short");
                 return false;
             }
 
+            Debug.WriteLine("✅ Input validation passed");
             return true;
         }
 
@@ -175,7 +236,8 @@ namespace CrunchyRolls.Core.ViewModels
         /// </summary>
         private bool CanLogin()
         {
-            return !IsBusy && !string.IsNullOrWhiteSpace(Email) && !string.IsNullOrWhiteSpace(Password);
+            bool canLogin = !IsBusy && !string.IsNullOrWhiteSpace(Email) && !string.IsNullOrWhiteSpace(Password);
+            return canLogin;
         }
 
         // ===== REGISTRATIE LOGICA =====
@@ -187,7 +249,6 @@ namespace CrunchyRolls.Core.ViewModels
         {
             try
             {
-                // Voor nu gewoon een bericht tonen
                 await DisplayAlert(
                     "Registratie",
                     "Registratie functie wordt binnenkort toegevoegd!",
@@ -281,8 +342,6 @@ namespace CrunchyRolls.Core.ViewModels
 
             Debug.WriteLine("🗑️ LoginViewModel verwijderd");
         }
-
-        // ===== TEST GEGEVENS =====
 
         /// <summary>
         /// Formulier invullen met test gegevens (voor ontwikkeling)
