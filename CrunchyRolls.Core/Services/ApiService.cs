@@ -14,12 +14,23 @@ namespace CrunchyRolls.Core.Services
         // JWT token voor authenticatie
         private string? _authToken;
 
-        private const string BaseUrl = "http://localhost:5000/api"; // Pas aan naar jouw API!
+        private const string BaseUrl = "http://127.0.0.1:5000/api";
 
         public ApiService()
         {
-            _httpClient = new HttpClient();
+            var handler = new HttpClientHandler();
+
+            // ✅ BELANGRIJK: Disable SSL certificate validation for localhost
+            handler.ServerCertificateCustomValidationCallback =
+                (message, cert, chain, errors) => true;
+
+            _httpClient = new HttpClient(handler)
+            {
+                Timeout = TimeSpan.FromSeconds(30) // Langere timeout
+            };
+
             Debug.WriteLine("📡 ApiService geïnitialiseerd");
+            Debug.WriteLine($"📡 BaseUrl: {BaseUrl}");
         }
 
         // ===== AUTHENTICATIE =====
@@ -34,13 +45,11 @@ namespace CrunchyRolls.Core.Services
 
             if (string.IsNullOrWhiteSpace(token))
             {
-                // Verwijder Authorization header
                 _httpClient.DefaultRequestHeaders.Remove("Authorization");
                 Debug.WriteLine("🔓 Autorisatie header verwijderd");
             }
             else
             {
-                // Voeg Authorization header toe met JWT token
                 _httpClient.DefaultRequestHeaders.Remove("Authorization");
                 _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
                 Debug.WriteLine("🔒 Autorisatie header ingesteld");
@@ -49,9 +58,6 @@ namespace CrunchyRolls.Core.Services
 
         // ===== GET REQUESTS =====
 
-        /// <summary>
-        /// GET aanvraag met deserialisatie
-        /// </summary>
         public async Task<T?> GetAsync<T>(string endpoint)
         {
             try
@@ -61,10 +67,9 @@ namespace CrunchyRolls.Core.Services
 
                 using (var response = await _httpClient.GetAsync(url))
                 {
-                    // Controleer op 401 Unauthorized (token verlopen/ongeldig)
                     if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
                     {
-                        Debug.WriteLine("❌ Niet geautoriseerd (401) - Token kan verlopen zijn");
+                        Debug.WriteLine("❌ Niet geautoriseerd (401)");
                         throw new UnauthorizedAccessException("API authenticatie mislukt - log opnieuw in");
                     }
 
@@ -76,15 +81,13 @@ namespace CrunchyRolls.Core.Services
                     }
 
                     var content = await response.Content.ReadAsStringAsync();
-                    var result = JsonSerializer.Deserialize<T>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-
-                    Debug.WriteLine($"✅ GET succesvol: {endpoint}");
-                    return result;
+                    return JsonSerializer.Deserialize<T>(
+                        content,
+                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                 }
             }
             catch (UnauthorizedAccessException)
             {
-                // Herwerp authentication errors
                 throw;
             }
             catch (Exception ex)
@@ -96,9 +99,6 @@ namespace CrunchyRolls.Core.Services
 
         // ===== POST REQUESTS =====
 
-        /// <summary>
-        /// POST aanvraag met request body en deserialisatie
-        /// </summary>
         public async Task<TResponse?> PostAsync<TRequest, TResponse>(string endpoint, TRequest request)
         {
             try
@@ -111,10 +111,9 @@ namespace CrunchyRolls.Core.Services
 
                 using (var response = await _httpClient.PostAsync(url, content))
                 {
-                    // Controleer op 401 Unauthorized
                     if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
                     {
-                        Debug.WriteLine("❌ Niet geautoriseerd (401) - Token kan verlopen zijn");
+                        Debug.WriteLine("❌ Niet geautoriseerd (401)");
                         throw new UnauthorizedAccessException("API authenticatie mislukt - log opnieuw in");
                     }
 
@@ -126,15 +125,13 @@ namespace CrunchyRolls.Core.Services
                     }
 
                     var responseContent = await response.Content.ReadAsStringAsync();
-                    var result = JsonSerializer.Deserialize<TResponse>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-
-                    Debug.WriteLine($"✅ POST succesvol: {endpoint}");
-                    return result;
+                    return JsonSerializer.Deserialize<TResponse>(
+                        responseContent,
+                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                 }
             }
             catch (UnauthorizedAccessException)
             {
-                // Herwerp authentication errors
                 throw;
             }
             catch (Exception ex)
@@ -146,9 +143,6 @@ namespace CrunchyRolls.Core.Services
 
         // ===== PUT REQUESTS =====
 
-        /// <summary>
-        /// PUT aanvraag voor update
-        /// </summary>
         public async Task<bool> PutAsync<T>(string endpoint, T request)
         {
             try
@@ -161,12 +155,8 @@ namespace CrunchyRolls.Core.Services
 
                 using (var response = await _httpClient.PutAsync(url, content))
                 {
-                    // Controleer op 401 Unauthorized
                     if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
-                    {
-                        Debug.WriteLine("❌ Niet geautoriseerd (401)");
                         throw new UnauthorizedAccessException("API authenticatie mislukt - log opnieuw in");
-                    }
 
                     if (!response.IsSuccessStatusCode)
                     {
@@ -175,7 +165,6 @@ namespace CrunchyRolls.Core.Services
                         return false;
                     }
 
-                    Debug.WriteLine($"✅ PUT succesvol: {endpoint}");
                     return true;
                 }
             }
@@ -192,9 +181,6 @@ namespace CrunchyRolls.Core.Services
 
         // ===== DELETE REQUESTS =====
 
-        /// <summary>
-        /// DELETE aanvraag
-        /// </summary>
         public async Task<bool> DeleteAsync(string endpoint)
         {
             try
@@ -204,12 +190,8 @@ namespace CrunchyRolls.Core.Services
 
                 using (var response = await _httpClient.DeleteAsync(url))
                 {
-                    // Controleer op 401 Unauthorized
                     if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
-                    {
-                        Debug.WriteLine("❌ Niet geautoriseerd (401)");
                         throw new UnauthorizedAccessException("API authenticatie mislukt - log opnieuw in");
-                    }
 
                     if (!response.IsSuccessStatusCode)
                     {
@@ -218,7 +200,6 @@ namespace CrunchyRolls.Core.Services
                         return false;
                     }
 
-                    Debug.WriteLine($"✅ DELETE succesvol: {endpoint}");
                     return true;
                 }
             }
@@ -235,9 +216,6 @@ namespace CrunchyRolls.Core.Services
 
         // ===== HULPMETHODES =====
 
-        /// <summary>
-        /// Controleer of API bereikbaar is
-        /// </summary>
         public async Task<bool> IsApiAvailableAsync()
         {
             try
