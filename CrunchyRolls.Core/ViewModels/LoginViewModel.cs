@@ -9,13 +9,11 @@ namespace CrunchyRolls.Core.ViewModels
     /// <summary>
     /// ViewModel voor inlogpagina
     /// Behandelt inloglogica en formuliervalidatie
-    /// VERBETERD: Beter error handling en debugging
     /// </summary>
     public class LoginViewModel : BaseViewModel
     {
         private readonly IAuthService _authService;
 
-        // Properties
         private string _email = string.Empty;
         private string _password = string.Empty;
         private bool _rememberMe = false;
@@ -96,26 +94,35 @@ namespace CrunchyRolls.Core.ViewModels
                 IsBusy = true;
                 ErrorMessage = "Testing API connection...";
 
-                using (var client = new HttpClient())
+                using var client = new HttpClient
                 {
-                    var url = "http://127.0.0.1:5000/api/categories";
-                    Debug.WriteLine($"🔧 TEST: Contacting {url}");
+                    Timeout = TimeSpan.FromSeconds(5)
+                };
 
-                    var response = await client.GetAsync(url);
+                // ✅ CONSISTENT met ApiService.BaseUrl
+                var url = "http://localhost:5000/api/categories";
+                Debug.WriteLine($"🔧 TEST: Contacting {url}");
 
-                    if (response.IsSuccessStatusCode)
-                    {
-                        ErrorMessage = $"✅ API Succesvol bereikt! Status: {response.StatusCode}";
-                    }
-                    else
-                    {
-                        ErrorMessage = $"❌ API Error: {response.StatusCode}";
-                    }
+                var response = await client.GetAsync(url);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    ErrorMessage =
+                        $"✅ API succesvol bereikt ({(int)response.StatusCode})";
                 }
+                else
+                {
+                    ErrorMessage =
+                        $"❌ API fout ({(int)response.StatusCode}) - {response.ReasonPhrase}";
+                }
+            }
+            catch (TaskCanceledException)
+            {
+                ErrorMessage = "❌ Timeout: API reageert niet";
             }
             catch (Exception ex)
             {
-                ErrorMessage = $"❌ API Onbereikbaar: {ex.Message}";
+                ErrorMessage = $"❌ API onbereikbaar: {ex.Message}";
             }
             finally
             {
