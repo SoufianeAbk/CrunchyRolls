@@ -231,7 +231,7 @@ namespace CrunchyRolls.Core.ViewModels
         {
             MainThread.BeginInvokeOnMainThread(async () =>
             {
-                await Shell.Current.GoToAsync("//producten");
+                await Shell.Current.GoToAsync("//app/producten");
                 ClearForm();
             });
         }

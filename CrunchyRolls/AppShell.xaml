@@ -13,7 +13,7 @@
         Route="login" />
 
     <!-- ===== MAIN APP ROUTES (Tabbed Interface) ===== -->
-    <TabBar x:Name="MainTabs" IsVisible="False">
+    <TabBar x:Name="MainTabs" Route="app" IsVisible="False">
 
         <!-- Producten Tab -->
         <ShellContent 
