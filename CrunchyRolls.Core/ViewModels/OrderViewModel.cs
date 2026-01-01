@@ -14,7 +14,7 @@ namespace CrunchyRolls.Core.ViewModels
         private string _customerName = string.Empty;
         private string _customerEmail = string.Empty;
         private string _deliveryAddress = string.Empty;
-
+        
         public ObservableCollection<OrderItem> CartItems
         {
             get => _cartItems;
