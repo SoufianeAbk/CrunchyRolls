@@ -227,9 +227,24 @@ namespace CrunchyRolls.Core.ViewModels
             return Task.CompletedTask;
         }
 
+        // ✅ UPDATED METHOD
         private void OnLoginSucceeded(object? sender, AuthUser user)
         {
+            Debug.WriteLine($"✅ LoginSucceeded - navigating to producten");
             ClearForm();
+
+            MainThread.BeginInvokeOnMainThread(async () =>
+            {
+                try
+                {
+                    await Task.Delay(200); // Give Shell time
+                    await Shell.Current.GoToAsync("//producten");
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"❌ Navigation error: {ex.Message}");
+                }
+            });
         }
 
         private void OnAuthenticationFailed(object? sender, string errorMessage)
