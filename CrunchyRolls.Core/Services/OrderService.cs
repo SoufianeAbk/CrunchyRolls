@@ -152,23 +152,21 @@ namespace CrunchyRolls.Core.Services
                     return null;
                 }
 
+                // ✅ FIXED: Use the orderItems parameter (ViewModel already prepared correctly without Product object)
+                // Don't rebuild with Product objects - that causes UNIQUE constraint error!
                 var order = new Order
                 {
                     CustomerName = customerName,
                     CustomerEmail = customerEmail,
                     DeliveryAddress = deliveryAddress,
                     OrderDate = DateTime.Now,
-                    OrderItems = new List<OrderItem>(_currentOrderItems.Select(item => new OrderItem
-                    {
-                        ProductId = item.ProductId,
-                        Product = item.Product,
-                        Quantity = item.Quantity,
-                        UnitPrice = item.UnitPrice
-                    })),
+                    OrderItems = orderItems ?? new List<OrderItem>(),
                     Status = OrderStatus.Pending
                 };
 
                 Debug.WriteLine($"📝 Attempting to create order for {customerEmail}...");
+                Debug.WriteLine($"   Items count: {order.OrderItems.Count}");
+                Debug.WriteLine($"   Total: €{order.TotalAmount:F2}");
 
                 var createdOrder = await _apiService.PostAsync<Order, Order>("orders", order);
 
