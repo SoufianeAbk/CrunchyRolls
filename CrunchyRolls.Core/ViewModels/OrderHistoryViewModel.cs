@@ -8,6 +8,13 @@ using System.Windows.Input;
 
 namespace CrunchyRolls.Core.ViewModels
 {
+    /// <summary>
+    /// OrderHistoryViewModel - Toont alle bestellingen van een klant
+    /// Ontvangt email via:
+    /// 1. Query parameter: //orders?email=user@example.com
+    /// 2. DirectUI call van OrderHistoryPage.xaml.cs via SetCustomerEmail()
+    /// </summary>
+    [QueryProperty(nameof(Email), "email")]
     public class OrderHistoryViewModel : BaseViewModel
     {
         private readonly OrderService _orderService;
@@ -17,6 +24,7 @@ namespace CrunchyRolls.Core.ViewModels
         private int _totalOrders;
         private decimal _totalSpent;
         private string _customerEmail = string.Empty;
+        private string _email = string.Empty;
 
         public ObservableCollection<Order> Orders
         {
@@ -48,6 +56,26 @@ namespace CrunchyRolls.Core.ViewModels
             set => SetProperty(ref _customerEmail, value);
         }
 
+        /// <summary>
+        /// Email via query parameter (//orders?email=user@example.com)
+        /// </summary>
+        public string Email
+        {
+            get => _email;
+            set
+            {
+                if (SetProperty(ref _email, value))
+                {
+                    // Wanneer email ingesteld wordt via query parameter, set deze in CustomerEmail
+                    if (!string.IsNullOrWhiteSpace(value))
+                    {
+                        Debug.WriteLine($"📧 Email ontvangen via query parameter: {value}");
+                        SetCustomerEmail(value);
+                    }
+                }
+            }
+        }
+
         public bool HasOrders => Orders.Any();
 
         public ICommand LoadOrdersCommand { get; }
@@ -59,7 +87,7 @@ namespace CrunchyRolls.Core.ViewModels
         {
             _orderService = orderService ?? throw new ArgumentNullException(nameof(orderService));
 
-            Title = "Bestelgeschiedenis";
+            Title = "Bestellingen";
 
             LoadOrdersCommand = new Command(async () => await LoadOrdersAsync());
             OrderTappedCommand = new Command<Order>(OnOrderTapped);
@@ -78,6 +106,31 @@ namespace CrunchyRolls.Core.ViewModels
             {
                 CustomerEmail = email;
                 Debug.WriteLine($"📧 Customer email set to: {email}");
+            }
+        }
+
+        /// <summary>
+        /// Called from OrderHistoryPage.xaml.cs OnAppearing
+        /// Laadt bestellingen voor huidige ingelogde gebruiker
+        /// </summary>
+        public async Task OnAppearingAsync()
+        {
+            try
+            {
+                Debug.WriteLine("📱 OrderHistoryPage OnAppearing - loading orders");
+
+                if (!string.IsNullOrWhiteSpace(CustomerEmail))
+                {
+                    await LoadOrdersAsync();
+                }
+                else
+                {
+                    Debug.WriteLine("⚠️ CustomerEmail not set yet");
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"❌ Error in OnAppearingAsync: {ex.Message}");
             }
         }
 
@@ -121,10 +174,7 @@ namespace CrunchyRolls.Core.ViewModels
 
                 if (!orders.Any())
                 {
-                    await ShowAlert(
-                        "Geen bestellingen",
-                        "Je hebt nog geen bestellingen geplaatst.",
-                        "OK");
+                    Debug.WriteLine("ℹ️ No orders found for customer");
                 }
             }
             catch (Exception ex)

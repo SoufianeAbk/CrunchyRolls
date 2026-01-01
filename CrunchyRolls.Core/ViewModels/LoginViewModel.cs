@@ -99,22 +99,14 @@ namespace CrunchyRolls.Core.ViewModels
                     Timeout = TimeSpan.FromSeconds(5)
                 };
 
-                // ✅ CONSISTENT met ApiService.BaseUrl
                 var url = "http://localhost:5000/api/categories";
                 Debug.WriteLine($"🔧 TEST: Contacting {url}");
 
                 var response = await client.GetAsync(url);
 
-                if (response.IsSuccessStatusCode)
-                {
-                    ErrorMessage =
-                        $"✅ API succesvol bereikt ({(int)response.StatusCode})";
-                }
-                else
-                {
-                    ErrorMessage =
-                        $"❌ API fout ({(int)response.StatusCode}) - {response.ReasonPhrase}";
-                }
+                ErrorMessage = response.IsSuccessStatusCode
+                    ? $"✅ API succesvol bereikt ({(int)response.StatusCode})"
+                    : $"❌ API fout ({(int)response.StatusCode}) - {response.ReasonPhrase}";
             }
             catch (TaskCanceledException)
             {
@@ -130,21 +122,11 @@ namespace CrunchyRolls.Core.ViewModels
             }
         }
 
-        public async Task OnAppearingAsync()
+        // ✅ GEEN navigatie meer hier
+        public Task OnAppearingAsync()
         {
-            try
-            {
-                Debug.WriteLine("📱 LoginPage OnAppearing - checking auth status");
-
-                if (_authService.IsAuthenticated)
-                {
-                    await Shell.Current.GoToAsync("//producten");
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"❌ Fout in OnAppearing: {ex.Message}");
-            }
+            Debug.WriteLine("📱 LoginPage OnAppearing");
+            return Task.CompletedTask;
         }
 
         private async Task OnLoginAsync()
@@ -220,25 +202,23 @@ namespace CrunchyRolls.Core.ViewModels
 
         private Task DisplayAlert(string title, string message, string cancel)
         {
-            if (Application.Current?.MainPage != null)
-            {
-                return Application.Current.MainPage.DisplayAlert(title, message, cancel);
-            }
-            return Task.CompletedTask;
+            return Application.Current?.MainPage != null
+                ? Application.Current.MainPage.DisplayAlert(title, message, cancel)
+                : Task.CompletedTask;
         }
 
-        // ✅ UPDATED METHOD
+        // ✅ ENIGE plek waar navigatie gebeurt
         private void OnLoginSucceeded(object? sender, AuthUser user)
         {
-            Debug.WriteLine($"✅ LoginSucceeded - navigating to producten");
+            Debug.WriteLine("✅ LoginSucceeded - navigating to producten");
             ClearForm();
 
             MainThread.BeginInvokeOnMainThread(async () =>
             {
                 try
                 {
-                    await Task.Delay(200); // Give Shell time
-                    await Shell.Current.GoToAsync("//producten");
+                    await Task.Delay(200);
+                    await Shell.Current.GoToAsync("//orders");
                 }
                 catch (Exception ex)
                 {

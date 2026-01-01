@@ -3,6 +3,7 @@ using CrunchyRolls.Models.Entities;
 using CrunchyRolls.Core.Services;
 using System.Collections.ObjectModel;
 using System.Windows.Input;
+using System.Diagnostics;
 
 namespace CrunchyRolls.Core.ViewModels
 {
@@ -14,7 +15,7 @@ namespace CrunchyRolls.Core.ViewModels
         private string _customerName = string.Empty;
         private string _customerEmail = string.Empty;
         private string _deliveryAddress = string.Empty;
-        
+
         public ObservableCollection<OrderItem> CartItems
         {
             get => _cartItems;
@@ -141,14 +142,19 @@ namespace CrunchyRolls.Core.ViewModels
                         $"Je bestelling #{order.Id} is succesvol geplaatst. Totaal: €{order.TotalAmount:F2}",
                         "OK");
 
+                    // Store de email voor navigatie
+                    var emailForNavigation = CustomerEmail;
+
                     // Reset form
                     CustomerName = string.Empty;
                     CustomerEmail = string.Empty;
                     DeliveryAddress = string.Empty;
                     LoadCart();
 
-                    // Navigate terug naar home
-                    await Shell.Current.GoToAsync("//MainPage");
+                    // ✅ FIXED - Navigate naar orders pagina met email parameter
+                    // Dit zorgt ervoor dat de OrderHistoryPage direct de orders van deze klant laadt
+                    Debug.WriteLine($"🎯 Navigating to //orders with email: {emailForNavigation}");
+                    await Shell.Current.GoToAsync($"//orders?email={Uri.EscapeDataString(emailForNavigation)}");
                 }
                 else
                 {
@@ -160,6 +166,7 @@ namespace CrunchyRolls.Core.ViewModels
             }
             catch (Exception ex)
             {
+                Debug.WriteLine($"❌ Error placing order: {ex.Message}");
                 await ShowAlert(
                     "Fout",
                     $"Er is een fout opgetreden: {ex.Message}",
