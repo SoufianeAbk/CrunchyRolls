@@ -65,6 +65,9 @@ namespace CrunchyRolls
                 {
                     try
                     {
+                        // Wait 100ms for Shell to register the TabBar routes
+                        await Task.Delay(100);
+
                         await Shell.Current.GoToAsync("//producten");
                     }
                     catch (Exception ex)
@@ -84,6 +87,9 @@ namespace CrunchyRolls
                 {
                     try
                     {
+                        // Wait 100ms for Shell to register the routes
+                        await Task.Delay(100);
+
                         await Shell.Current.GoToAsync("//login");
                     }
                     catch (Exception ex)

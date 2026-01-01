@@ -229,11 +229,7 @@ namespace CrunchyRolls.Core.ViewModels
 
         private void OnLoginSucceeded(object? sender, AuthUser user)
         {
-            MainThread.BeginInvokeOnMainThread(async () =>
-            {
-                await Shell.Current.GoToAsync("//app/producten");
-                ClearForm();
-            });
+            ClearForm();
         }
 
         private void OnAuthenticationFailed(object? sender, string errorMessage)

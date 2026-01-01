@@ -134,7 +134,7 @@ namespace CrunchyRolls.Core.Services
         /// <summary>
         /// Create order via API
         /// </summary>
-        public async Task<Order?> CreateOrderAsync(string customerName, string customerEmail, string deliveryAddress)
+        public async Task<Order?> CreateOrderAsync(string customerName, string customerEmail, string deliveryAddress, List<OrderItem> orderItems)
         {
             try
             {

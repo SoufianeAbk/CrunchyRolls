@@ -144,18 +144,28 @@ namespace CrunchyRolls.Core.ViewModels
             }
         }
 
+        /// <summary>
+        /// Navigate to product detail page when product is tapped
+        /// </summary>
         private async void OnProductTapped(Product product)
         {
             if (product == null)
                 return;
 
-            // Navigate to product detail page met // prefix voor absolute routing
-            var navigationParameter = new Dictionary<string, object>
+            try
             {
-                { "Product", product }
-            };
+                // Navigate to product detail page using the correct route name
+                var navigationParameter = new Dictionary<string, object>
+                {
+                    { "Product", product }
+                };
 
-            await Shell.Current.GoToAsync($"//ProductDetailPage", navigationParameter);
+                await Shell.Current.GoToAsync("//productdetail", navigationParameter);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Navigation error: {ex.Message}");
+            }
         }
 
         private async void OnAddToCart(Product product)
@@ -174,7 +184,7 @@ namespace CrunchyRolls.Core.ViewModels
 
         private async Task OnNavigateToCart()
         {
-            await Shell.Current.GoToAsync("//OrderPage");
+            await Shell.Current.GoToAsync("//cart");
         }
 
         // Helper method for dialog

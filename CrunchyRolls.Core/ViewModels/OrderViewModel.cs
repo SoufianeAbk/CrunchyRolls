@@ -120,10 +120,19 @@ namespace CrunchyRolls.Core.ViewModels
             {
                 IsBusy = true;
 
+                // ✅ CORRECT - Only ID reference
+                var orderItems = CartItems.Select(x => new OrderItem
+                {
+                    ProductId = x.ProductId,
+                    Quantity = x.Quantity,
+                    UnitPrice = x.UnitPrice
+                }).ToList();
+
                 var order = await _orderService.CreateOrderAsync(
                     CustomerName,
                     CustomerEmail,
-                    DeliveryAddress);
+                    DeliveryAddress,
+                    orderItems);
 
                 if (order != null)
                 {

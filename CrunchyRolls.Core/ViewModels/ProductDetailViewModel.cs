@@ -73,7 +73,7 @@ namespace CrunchyRolls.Core.ViewModels
                 "OK");
 
             // Ga terug naar producten pagina (met // prefix)
-            await Shell.Current.GoToAsync("//ProductsPage");
+            await Shell.Current.GoToAsync("//producten");
         }
 
         // Helper method for dialog

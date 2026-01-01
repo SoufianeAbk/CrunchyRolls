@@ -12,8 +12,14 @@
         ContentTemplate="{DataTemplate local:LoginPage}"
         Route="login" />
 
+    <!-- ===== PRODUCT DETAIL ROUTE ===== -->
+    <ShellContent
+        Title="Product Detail"
+        ContentTemplate="{DataTemplate local:ProductDetailPage}"
+        Route="productdetail" />
+
     <!-- ===== MAIN APP ROUTES (Tabbed Interface) ===== -->
-    <TabBar x:Name="MainTabs" Route="app" IsVisible="False">
+    <TabBar x:Name="MainTabs" IsVisible="False">
 
         <!-- Producten Tab -->
         <ShellContent 
