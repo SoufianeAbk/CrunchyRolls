@@ -74,7 +74,7 @@ SQL Server LocalDB (installeert met Visual Studio)
 Platform SDKs: Xcode (iOS), Android SDK (Android)
 
 Setup (5 stappen)
-bash 1. Clone repository
+1. Clone repository
 git clone <https://github.com/SoufianeAbk/CrunchyRolls>
 cd CrunchyRolls
 
