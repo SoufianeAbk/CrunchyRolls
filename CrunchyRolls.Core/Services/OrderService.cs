@@ -132,62 +132,164 @@ namespace CrunchyRolls.Core.Services
         // ===== ORDER FUNCTIONALITEIT =====
 
         /// <summary>
-        /// Create order via API
+        /// Create order via API - WITH EXTENSIVE DEBUGGING
         /// </summary>
         public async Task<Order?> CreateOrderAsync(string customerName, string customerEmail, string deliveryAddress, List<OrderItem> orderItems)
         {
             try
             {
-                if (!_currentOrderItems.Any())
+                // ===== DEBUG: INPUT VALIDATION =====
+                Debug.WriteLine("\n╔════════════════════════════════════════════════════╗");
+                Debug.WriteLine("║          🔍 ORDER CREATION DEBUG START 🔍          ║");
+                Debug.WriteLine("╚════════════════════════════════════════════════════╝\n");
+
+                Debug.WriteLine("📧 CUSTOMER DATA:");
+                Debug.WriteLine($"   Name: '{customerName}' (empty: {string.IsNullOrWhiteSpace(customerName)})");
+                Debug.WriteLine($"   Email: '{customerEmail}' (empty: {string.IsNullOrWhiteSpace(customerEmail)})");
+                Debug.WriteLine($"   Address: '{deliveryAddress}' (empty: {string.IsNullOrWhiteSpace(deliveryAddress)})");
+
+                Debug.WriteLine("\n📦 ORDER ITEMS:");
+                Debug.WriteLine($"   Parameter count: {orderItems?.Count ?? 0}");
+                Debug.WriteLine($"   Cart count: {_currentOrderItems.Count}");
+
+                // ===== VALIDATION =====
+                if (string.IsNullOrWhiteSpace(customerName))
                 {
-                    Debug.WriteLine("⚠️ Attempted to create order with empty cart");
+                    Debug.WriteLine("\n❌ VALIDATION FAILED: CustomerName is empty or whitespace");
                     return null;
                 }
 
-                if (string.IsNullOrWhiteSpace(customerName) ||
-                    string.IsNullOrWhiteSpace(customerEmail) ||
-                    string.IsNullOrWhiteSpace(deliveryAddress))
+                if (string.IsNullOrWhiteSpace(customerEmail))
                 {
-                    Debug.WriteLine("⚠️ Attempted to create order with missing customer info");
+                    Debug.WriteLine("\n❌ VALIDATION FAILED: CustomerEmail is empty or whitespace");
                     return null;
                 }
 
-                // ✅ FIXED: Use the orderItems parameter (ViewModel already prepared correctly without Product object)
-                // Don't rebuild with Product objects - that causes UNIQUE constraint error!
+                if (string.IsNullOrWhiteSpace(deliveryAddress))
+                {
+                    Debug.WriteLine("\n❌ VALIDATION FAILED: DeliveryAddress is empty or whitespace");
+                    return null;
+                }
+
+                if (orderItems == null)
+                {
+                    Debug.WriteLine("\n❌ VALIDATION FAILED: orderItems parameter is NULL");
+                    Debug.WriteLine("   This means NO items were passed from the ViewModel!");
+                    return null;
+                }
+
+                if (!orderItems.Any())
+                {
+                    Debug.WriteLine("\n❌ VALIDATION FAILED: orderItems is empty");
+                    Debug.WriteLine("   CartItems in ViewModel may not have been loaded correctly");
+                    return null;
+                }
+
+                // ===== VALIDATE EACH ITEM =====
+                Debug.WriteLine("\n📋 VALIDATING INDIVIDUAL ITEMS:");
+                for (int i = 0; i < orderItems.Count; i++)
+                {
+                    var item = orderItems[i];
+                    Debug.WriteLine($"\n   Item #{i + 1}:");
+                    Debug.WriteLine($"      ProductId: {item.ProductId} (valid: {item.ProductId > 0})");
+                    Debug.WriteLine($"      Quantity: {item.Quantity} (valid: {item.Quantity > 0})");
+                    Debug.WriteLine($"      UnitPrice: €{item.UnitPrice:F2} (valid: {item.UnitPrice >= 0})");
+
+                    if (item.ProductId <= 0)
+                    {
+                        Debug.WriteLine($"      ❌ ERROR: ProductId must be > 0, got {item.ProductId}");
+                        return null;
+                    }
+
+                    if (item.Quantity <= 0)
+                    {
+                        Debug.WriteLine($"      ❌ ERROR: Quantity must be > 0, got {item.Quantity}");
+                        return null;
+                    }
+
+                    if (item.UnitPrice < 0)
+                    {
+                        Debug.WriteLine($"      ❌ ERROR: UnitPrice cannot be negative, got €{item.UnitPrice:F2}");
+                        return null;
+                    }
+                }
+
+                // ===== BUILD ORDER =====
+                Debug.WriteLine("\n🔨 BUILDING ORDER OBJECT:");
                 var order = new Order
                 {
-                    CustomerName = customerName,
-                    CustomerEmail = customerEmail,
-                    DeliveryAddress = deliveryAddress,
+                    CustomerName = customerName.Trim(),
+                    CustomerEmail = customerEmail.Trim(),
+                    DeliveryAddress = deliveryAddress.Trim(),
                     OrderDate = DateTime.Now,
-                    OrderItems = orderItems ?? new List<OrderItem>(),
+                    OrderItems = orderItems,
                     Status = OrderStatus.Pending
                 };
 
-                Debug.WriteLine($"📝 Attempting to create order for {customerEmail}...");
-                Debug.WriteLine($"   Items count: {order.OrderItems.Count}");
-                Debug.WriteLine($"   Total: €{order.TotalAmount:F2}");
+                Debug.WriteLine($"   Total items: {order.OrderItems.Count}");
+                Debug.WriteLine($"   Subtotal: €{order.TotalAmount:F2}");
+                Debug.WriteLine($"   Status: {order.Status}");
+                Debug.WriteLine($"   Date: {order.OrderDate:yyyy-MM-dd HH:mm:ss}");
+
+                // ===== SEND TO API =====
+                Debug.WriteLine("\n📤 SENDING TO API:");
+                Debug.WriteLine($"   Endpoint: POST /api/orders");
+                Debug.WriteLine($"   Payload size: {System.Text.Json.JsonSerializer.Serialize(order).Length} bytes");
 
                 var createdOrder = await _apiService.PostAsync<Order, Order>("orders", order);
 
+                // ===== CHECK RESPONSE =====
                 if (createdOrder != null)
                 {
-                    Debug.WriteLine($"✅ Order #{createdOrder.Id} created successfully");
+                    Debug.WriteLine("\n✅✅✅ SUCCESS! ORDER CREATED ✅✅✅");
+                    Debug.WriteLine($"   Order ID: {createdOrder.Id}");
+                    Debug.WriteLine($"   Total: €{createdOrder.TotalAmount:F2}");
+                    Debug.WriteLine($"   Items: {createdOrder.OrderItems.Count}");
+                    Debug.WriteLine($"   Status: {createdOrder.Status}");
 
                     ClearCart();
                     _cachedOrderHistory?.Add(createdOrder);
+
+                    Debug.WriteLine("\n╔════════════════════════════════════════════════════╗");
+                    Debug.WriteLine("║        ✅ ORDER CREATION DEBUG END - SUCCESS ✅   ║");
+                    Debug.WriteLine("╚════════════════════════════════════════════════════╝\n");
 
                     return createdOrder;
                 }
                 else
                 {
-                    Debug.WriteLine("❌ Failed to create order - API returned null");
+                    Debug.WriteLine("\n❌ API RETURNED NULL");
+                    Debug.WriteLine("   Check ApiService debug output above for error details");
+                    Debug.WriteLine("   Common causes:");
+                    Debug.WriteLine("   - API returned 400 Bad Request (check validation)");
+                    Debug.WriteLine("   - API returned 500 Internal Server Error (check database)");
+                    Debug.WriteLine("   - Network timeout (check connection)");
+                    Debug.WriteLine("   - JSON deserialization error (check model)");
+
+                    Debug.WriteLine("\n╔════════════════════════════════════════════════════╗");
+                    Debug.WriteLine("║        ❌ ORDER CREATION DEBUG END - FAILED ❌    ║");
+                    Debug.WriteLine("╚════════════════════════════════════════════════════╝\n");
+
                     return null;
                 }
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"❌ Error creating order: {ex.Message}");
+                Debug.WriteLine("\n💥💥💥 EXCEPTION THROWN 💥💥💥");
+                Debug.WriteLine($"   Exception Type: {ex.GetType().Name}");
+                Debug.WriteLine($"   Message: {ex.Message}");
+                Debug.WriteLine($"   StackTrace:\n{ex.StackTrace}");
+
+                if (ex.InnerException != null)
+                {
+                    Debug.WriteLine($"\n   Inner Exception: {ex.InnerException.Message}");
+                    Debug.WriteLine($"   Inner StackTrace:\n{ex.InnerException.StackTrace}");
+                }
+
+                Debug.WriteLine("\n╔════════════════════════════════════════════════════╗");
+                Debug.WriteLine("║      ❌ ORDER CREATION DEBUG END - EXCEPTION ❌   ║");
+                Debug.WriteLine("╚════════════════════════════════════════════════════╝\n");
+
                 throw;
             }
         }
