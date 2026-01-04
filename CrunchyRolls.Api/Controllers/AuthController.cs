@@ -5,14 +5,15 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
-// ✅ Correct using statements for CrunchyRolls
 using CrunchyRolls.Core.Authentication.Models;
 using CrunchyRolls.Models.Entities;
+using CrunchyRolls.Data.Repositories;
 
 namespace CrunchyRolls.Api.Controllers
 {
     /// <summary>
     /// Authentication controller voor JWT token generation
+    /// Gebruikt database users met hashed passwords
     /// </summary>
     [ApiController]
     [Route("api/[controller]")]
@@ -20,17 +21,16 @@ namespace CrunchyRolls.Api.Controllers
     {
         private readonly ILogger<AuthController> _logger;
         private readonly IConfiguration _configuration;
+        private readonly IUserRepository _userRepository;
 
-        // Hardcoded test user (In production: query database)
-        private static readonly Dictionary<string, string> TestUsers = new()
-        {
-            { "test@example.com", "Password123" }
-        };
-
-        public AuthController(ILogger<AuthController> logger, IConfiguration configuration)
+        public AuthController(
+            ILogger<AuthController> logger,
+            IConfiguration configuration,
+            IUserRepository userRepository)
         {
             _logger = logger;
             _configuration = configuration;
+            _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
         }
 
         /// <summary>
@@ -56,13 +56,26 @@ namespace CrunchyRolls.Api.Controllers
                     });
                 }
 
-                // ===== DEVELOPMENT: Simple test user validation =====
-                // In production: Query database user table
-                if (!TestUsers.TryGetValue(request.Email, out var storedPassword) ||
-                    storedPassword != request.Password)
+                // ===== Get user from database =====
+                var user = await _userRepository.GetByEmailAsync(request.Email);
+
+                if (user == null || !user.IsActive)
                 {
-                    Debug.WriteLine($"❌ Invalid credentials for {request.Email}");
-                    _logger.LogWarning($"❌ Invalid login attempt for {request.Email}");
+                    Debug.WriteLine($"❌ User not found or inactive: {request.Email}");
+                    _logger.LogWarning($"❌ Login attempt for non-existent or inactive user: {request.Email}");
+
+                    return Unauthorized(new LoginResponse
+                    {
+                        Success = false,
+                        Message = "Ongeldig email adres of wachtwoord"
+                    });
+                }
+
+                // ===== Verify password =====
+                if (!_userRepository.VerifyPassword(request.Password, user.PasswordHash))
+                {
+                    Debug.WriteLine($"❌ Invalid password for {request.Email}");
+                    _logger.LogWarning($"❌ Invalid password attempt for {request.Email}");
 
                     return Unauthorized(new LoginResponse
                     {
@@ -72,7 +85,7 @@ namespace CrunchyRolls.Api.Controllers
                 }
 
                 // ===== Generate JWT Token =====
-                var token = GenerateJwtToken(request.Email);
+                var token = GenerateJwtToken(user);
 
                 if (string.IsNullOrWhiteSpace(token))
                 {
@@ -84,15 +97,18 @@ namespace CrunchyRolls.Api.Controllers
                     });
                 }
 
-                // ===== Create user object =====
-                var user = new AuthUser
+                // ===== Update last login =====
+                await _userRepository.UpdateLastLoginAsync(user.Id);
+
+                // ===== Create response =====
+                var authUser = new AuthUser
                 {
-                    Id = 1,
-                    Email = request.Email,
-                    FirstName = "Test",
-                    LastName = "User",
-                    Role = "Customer",
-                    CreatedDate = DateTime.Now
+                    Id = user.Id,
+                    Email = user.Email,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
+                    Role = user.Role,
+                    CreatedDate = user.CreatedDate
                 };
 
                 var response = new LoginResponse
@@ -100,7 +116,7 @@ namespace CrunchyRolls.Api.Controllers
                     Success = true,
                     Message = "Inloggen succesvol",
                     Token = token,
-                    User = user
+                    User = authUser
                 };
 
                 Debug.WriteLine($"✅ Login successful for {request.Email}");
@@ -121,7 +137,10 @@ namespace CrunchyRolls.Api.Controllers
             }
         }
 
-        
+        /// <summary>
+        /// Refresh expired token
+        /// POST: /api/auth/refresh
+        /// </summary>
         [HttpPost("refresh")]
         public async Task<ActionResult<LoginResponse>> RefreshToken([FromBody] dynamic request)
         {
@@ -138,7 +157,6 @@ namespace CrunchyRolls.Api.Controllers
                     });
                 }
 
-                
                 var email = ExtractEmailFromToken(oldToken);
 
                 if (string.IsNullOrWhiteSpace(email))
@@ -150,8 +168,18 @@ namespace CrunchyRolls.Api.Controllers
                     });
                 }
 
-                
-                var newToken = GenerateJwtToken(email);
+                // Get user from database to verify still exists
+                var user = await _userRepository.GetByEmailAsync(email);
+                if (user == null || !user.IsActive)
+                {
+                    return Unauthorized(new LoginResponse
+                    {
+                        Success = false,
+                        Message = "Gebruiker niet gevonden of inactief"
+                    });
+                }
+
+                var newToken = GenerateJwtToken(user);
 
                 var response = new LoginResponse
                 {
@@ -160,10 +188,11 @@ namespace CrunchyRolls.Api.Controllers
                     Token = newToken,
                     User = new AuthUser
                     {
-                        Id = 1,
-                        Email = email,
-                        FirstName = "Test",
-                        LastName = "User"
+                        Id = user.Id,
+                        Email = user.Email,
+                        FirstName = user.FirstName,
+                        LastName = user.LastName,
+                        Role = user.Role
                     }
                 };
 
@@ -180,8 +209,10 @@ namespace CrunchyRolls.Api.Controllers
             }
         }
 
-        
-        private string GenerateJwtToken(string email)
+        /// <summary>
+        /// Generate JWT token for user
+        /// </summary>
+        private string GenerateJwtToken(User user)
         {
             try
             {
@@ -190,7 +221,6 @@ namespace CrunchyRolls.Api.Controllers
                 var jwtAudience = _configuration["Jwt:Audience"];
                 var jwtExpirationMinutes = _configuration.GetValue<int>("Jwt:ExpirationMinutes", 60);
 
-                
                 if (string.IsNullOrEmpty(jwtSecret))
                     jwtSecret = "VeryLongSecretKeyForJWTTokenGenerationThatIsAtLeast32CharactersLong!@#";
                 if (string.IsNullOrEmpty(jwtIssuer))
@@ -203,10 +233,11 @@ namespace CrunchyRolls.Api.Controllers
 
                 var claims = new[]
                 {
-                    new Claim(ClaimTypes.Email, email),
-                    new Claim(ClaimTypes.Name, email.Split('@')[0]),
-                    new Claim("role", "Customer"),
-                    new Claim(JwtRegisteredClaimNames.Sub, "1"),
+                    new Claim(ClaimTypes.Email, user.Email),
+                    new Claim(ClaimTypes.Name, user.FirstName),
+                    new Claim(ClaimTypes.Surname, user.LastName),
+                    new Claim(ClaimTypes.Role, user.Role),
+                    new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
                 };
 
@@ -220,7 +251,7 @@ namespace CrunchyRolls.Api.Controllers
 
                 var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
 
-                Debug.WriteLine($"✅ JWT Token generated for {email}");
+                Debug.WriteLine($"✅ JWT Token generated for {user.Email}");
                 Debug.WriteLine($"   Token expires in {jwtExpirationMinutes} minutes");
 
                 return tokenString;
@@ -232,6 +263,10 @@ namespace CrunchyRolls.Api.Controllers
                 return string.Empty;
             }
         }
+
+        /// <summary>
+        /// Extract email from JWT token claims
+        /// </summary>
         private string? ExtractEmailFromToken(string token)
         {
             try

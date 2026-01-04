@@ -20,6 +20,7 @@ namespace CrunchyRolls.Data.Extensions
                 options.UseSqlite(connectionString));
 
             // Repository registraties
+            services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<ICategoryRepository, CategoryRepository>();
             services.AddScoped<IProductRepository, ProductRepository>();
             services.AddScoped<IOrderRepository, OrderRepository>();

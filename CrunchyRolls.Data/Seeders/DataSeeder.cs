@@ -1,6 +1,8 @@
 ﻿using CrunchyRolls.Data.Context;
+using CrunchyRolls.Data.Repositories;
 using CrunchyRolls.Models.Entities;
 using Microsoft.EntityFrameworkCore;
+using System.Diagnostics;
 
 namespace CrunchyRolls.Data.Seeders
 {
@@ -13,26 +15,96 @@ namespace CrunchyRolls.Data.Seeders
                 // Maak database aan als deze niet bestaat
                 await context.Database.MigrateAsync();
 
-                // Controleer of data al bestaat
-                if (await context.Categories.AnyAsync())
+                // ===== SEED USERS =====
+                if (!await context.Users.AnyAsync())
                 {
-                    return; // Data al aanwezig
+                    Debug.WriteLine("🌱 Seeding users...");
+                    var users = GetSeedUsers();
+                    await context.Users.AddRangeAsync(users);
+                    await context.SaveChangesAsync();
+                    Debug.WriteLine($"✅ Seeded {users.Count} users");
                 }
 
-                // Seed categories
-                var categories = GetCategories();
-                await context.Categories.AddRangeAsync(categories);
-                await context.SaveChangesAsync();
+                // ===== SEED CATEGORIES & PRODUCTS =====
+                if (!await context.Categories.AnyAsync())
+                {
+                    Debug.WriteLine("🌱 Seeding categories and products...");
 
-                // Seed products
-                var products = GetProducts();
-                await context.Products.AddRangeAsync(products);
-                await context.SaveChangesAsync();
+                    var categories = GetCategories();
+                    await context.Categories.AddRangeAsync(categories);
+                    await context.SaveChangesAsync();
+
+                    var products = GetProducts();
+                    await context.Products.AddRangeAsync(products);
+                    await context.SaveChangesAsync();
+
+                    Debug.WriteLine($"✅ Seeded {categories.Count} categories and {products.Count} products");
+                }
             }
             catch (Exception ex)
             {
+                Debug.WriteLine($"❌ Error seeding database: {ex.Message}");
                 throw new InvalidOperationException("Error seeding database", ex);
             }
+        }
+
+        /// <summary>
+        /// Get seed users with hashed passwords
+        /// </summary>
+        private static List<User> GetSeedUsers()
+        {
+            // Create a temporary UserRepository instance to hash passwords
+            // Note: In production, use dependency injection
+            var userRepo = new UserRepository(new ApplicationDbContext(
+                new Microsoft.EntityFrameworkCore.DbContextOptions<ApplicationDbContext>()));
+
+            return new List<User>
+            {
+                new User
+                {
+                    Id = 1,
+                    Email = "test@example.com",
+                    PasswordHash = userRepo.HashPassword("Password123"),
+                    FirstName = "Test",
+                    LastName = "User",
+                    Role = "Customer",
+                    IsActive = true,
+                    CreatedDate = DateTime.UtcNow
+                },
+                new User
+                {
+                    Id = 2,
+                    Email = "admin@example.com",
+                    PasswordHash = userRepo.HashPassword("AdminPassword123"),
+                    FirstName = "Admin",
+                    LastName = "User",
+                    Role = "Admin",
+                    IsActive = true,
+                    CreatedDate = DateTime.UtcNow
+                },
+                new User
+                {
+                    Id = 3,
+                    Email = "john@example.com",
+                    PasswordHash = userRepo.HashPassword("JohnPassword123"),
+                    FirstName = "John",
+                    LastName = "Doe",
+                    Role = "Customer",
+                    IsActive = true,
+                    CreatedDate = DateTime.UtcNow
+                },
+                new User
+                {
+                    Id = 4,
+                    Email = "jane@example.com",
+                    PasswordHash = userRepo.HashPassword("JanePassword123"),
+                    FirstName = "Jane",
+                    LastName = "Smith",
+                    Role = "Customer",
+                    IsActive = true,
+                    CreatedDate = DateTime.UtcNow
+                }
+            };
         }
 
         private static List<Category> GetCategories()
