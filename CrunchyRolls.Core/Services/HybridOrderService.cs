@@ -12,6 +12,8 @@ namespace CrunchyRolls.Core.Services
     /// - Persistent winkelwagen (lokale DB)
     /// - Offline order creation (lokaal)
     /// - Sync met API zodra beschikbaar
+    /// 
+    /// ✅ FIXED: Fresh DbContext instances to avoid entity tracking conflicts
     /// </summary>
     public class HybridOrderService
     {
@@ -121,11 +123,19 @@ namespace CrunchyRolls.Core.Services
 
                     if (apiOrder != null)
                     {
-                        // Save to local cache too
-                        await _orderLocalRepo.AddAsync(apiOrder);
-                        ClearCart();
+                        // Save to local cache too using fresh repo
+                        var freshRepo = new OrderLocalRepository();
+                        try
+                        {
+                            await freshRepo.AddAsync(apiOrder);
+                            Debug.WriteLine($"✅ Order #{apiOrder.Id} created via API and cached locally");
+                        }
+                        finally
+                        {
+                            freshRepo.Dispose();
+                        }
 
-                        Debug.WriteLine($"✅ Order #{apiOrder.Id} created via API and cached locally");
+                        ClearCart();
                         return apiOrder;
                     }
                 }
@@ -153,6 +163,7 @@ namespace CrunchyRolls.Core.Services
 
         /// <summary>
         /// Get order history: API first, then local
+        /// ✅ FIXED: Use fresh DbContext to avoid entity tracking conflicts
         /// </summary>
         public async Task<List<Order>> GetOrderHistoryAsync(string customerEmail)
         {
@@ -169,12 +180,32 @@ namespace CrunchyRolls.Core.Services
 
                     if (apiOrders != null && apiOrders.Any())
                     {
-                        // Cache locally
-                        await _orderLocalRepo.ClearAllAsync();
-                        await _orderLocalRepo.AddRangeAsync(apiOrders);
+                        Debug.WriteLine($"✅ Got {apiOrders.Count} orders from API");
 
-                        Debug.WriteLine($"✅ Synced {apiOrders.Count} orders from API");
+                        // Cache locally using FRESH repository instance
+                        // This creates a new DbContext without tracked entities
+                        var freshRepo = new OrderLocalRepository();
+                        try
+                        {
+                            await freshRepo.ClearAllAsync();
+                            await freshRepo.AddRangeAsync(apiOrders);
+                            Debug.WriteLine($"✅ Cached {apiOrders.Count} orders locally");
+                        }
+                        catch (Exception cacheEx)
+                        {
+                            Debug.WriteLine($"⚠️ Failed to cache orders: {cacheEx.Message}");
+                            // Continue anyway - we have the API data
+                        }
+                        finally
+                        {
+                            freshRepo.Dispose();
+                        }
+
                         return apiOrders.OrderByDescending(o => o.OrderDate).ToList();
+                    }
+                    else
+                    {
+                        Debug.WriteLine("⚠️ API returned empty orders list");
                     }
                 }
                 catch (Exception ex)
