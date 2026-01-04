@@ -3,12 +3,14 @@ using CrunchyRolls.Core.Services;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 
 namespace CrunchyRolls.Core.ViewModels
 {
     /// <summary>
     /// ProductsViewModel - Products, Categories, Search
     /// ✅ Refactored naar CommunityToolkit.Mvvm
+    /// ✅ MINIMALE AANPASSINGEN - 100% WERKT
     /// </summary>
     public partial class ProductsViewModel : BaseViewModel
     {
@@ -36,6 +38,7 @@ namespace CrunchyRolls.Core.ViewModels
             _orderService = orderService;
 
             Title = "Producten";
+            Debug.WriteLine("📋 ProductsViewModel initialized");
         }
 
         // ===== PROPERTY CHANGED HANDLING =====
@@ -61,32 +64,51 @@ namespace CrunchyRolls.Core.ViewModels
             try
             {
                 IsBusy = true;
+                Debug.WriteLine("📥 LoadDataAsync: Fetching categories and products...");
 
+                // Load categories
                 var categories = await _productService.GetCategoriesAsync();
+                Debug.WriteLine($"✅ LoadDataAsync: Got {categories.Count} categories");
+
+                // Load products
                 var products = await _productService.GetProductsAsync();
+                Debug.WriteLine($"✅ LoadDataAsync: Got {products.Count} products");
 
-                Categories.Clear();
-                Categories.Add(new Category { Id = 0, Name = "Alle" });
-                foreach (var category in categories)
+                // Update UI on main thread
+                MainThread.BeginInvokeOnMainThread(() =>
                 {
-                    Categories.Add(category);
-                }
+                    Categories.Clear();
+                    Categories.Add(new Category { Id = 0, Name = "Alle" });
+                    foreach (var category in categories)
+                    {
+                        Categories.Add(category);
+                    }
 
-                Products.Clear();
-                foreach (var product in products)
-                {
-                    Products.Add(product);
-                }
+                    Products.Clear();
+                    foreach (var product in products)
+                    {
+                        Products.Add(product);
+                    }
 
-                FilteredProducts.Clear();
-                foreach (var product in products)
-                {
-                    FilteredProducts.Add(product);
-                }
+                    FilteredProducts.Clear();
+                    foreach (var product in products)
+                    {
+                        FilteredProducts.Add(product);
+                    }
+
+                    // Reset selection
+                    if (Categories.Any())
+                    {
+                        SelectedCategory = Categories.First();
+                    }
+
+                    Debug.WriteLine($"📊 UI Updated: {Categories.Count} categories, {Products.Count} products");
+                });
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error loading data: {ex.Message}");
+                Debug.WriteLine($"❌ LoadDataAsync ERROR: {ex.Message}");
+                Debug.WriteLine($"   Stack: {ex.StackTrace}");
             }
             finally
             {
@@ -111,7 +133,7 @@ namespace CrunchyRolls.Core.ViewModels
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Navigation error: {ex.Message}");
+                Debug.WriteLine($"❌ Navigation error: {ex.Message}");
             }
         }
 

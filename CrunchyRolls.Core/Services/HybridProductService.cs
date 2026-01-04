@@ -11,6 +11,7 @@ namespace CrunchyRolls.Core.Services
     /// 1. Try API
     /// 2. Cache resultaat lokaal
     /// 3. Als API down: gebruik lokale cache
+    /// 4. Anders: gebruik seed data uit lokale DB
     /// </summary>
     public class HybridProductService
     {
@@ -33,12 +34,14 @@ namespace CrunchyRolls.Core.Services
         // ===== CATEGORIES =====
 
         /// <summary>
-        /// Get categories: API -> Local Cache -> Mock
+        /// Get categories: API -> Local Cache -> Empty
         /// </summary>
         public async Task<List<Category>> GetCategoriesAsync(bool forceRefresh = false)
         {
             try
             {
+                Debug.WriteLine("📦 GetCategoriesAsync called");
+
                 // Check if we should refresh from API
                 var shouldRefreshApi = forceRefresh ||
                     (DateTime.Now - _lastApiSync).TotalMinutes > SyncIntervalMinutes;
@@ -47,40 +50,48 @@ namespace CrunchyRolls.Core.Services
                 {
                     try
                     {
-                        Debug.WriteLine("📡 Fetching categories from API...");
+                        Debug.WriteLine("📡 Attempting to fetch categories from API (localhost:5291)...");
                         var apiCategories = await _apiService.GetAsync<List<Category>>("categories");
 
                         if (apiCategories != null && apiCategories.Any())
                         {
-                            // Update local cache
+                            // ✅ API success - update local cache
+                            Debug.WriteLine($"✅ API SUCCESS: Got {apiCategories.Count} categories from API");
+
                             await _categoryLocalRepo.ClearAllAsync();
                             await _categoryLocalRepo.AddRangeAsync(apiCategories);
                             _lastApiSync = DateTime.Now;
 
-                            Debug.WriteLine($"✅ Synced {apiCategories.Count} categories from API");
                             return apiCategories;
+                        }
+                        else
+                        {
+                            Debug.WriteLine("⚠️ API returned empty list for categories");
                         }
                     }
                     catch (Exception ex)
                     {
-                        Debug.WriteLine($"⚠️ API fetch failed: {ex.Message} - using local cache");
+                        Debug.WriteLine($"❌ API FAILED: {ex.GetType().Name} - {ex.Message}");
+                        Debug.WriteLine($"   Stack: {ex.StackTrace}");
                     }
                 }
 
                 // Fallback: use local cache
+                Debug.WriteLine("💾 Falling back to local cache for categories...");
                 var cachedCategories = await _categoryLocalRepo.GetAllAsync();
+
                 if (cachedCategories.Any())
                 {
-                    Debug.WriteLine($"💾 Using {cachedCategories.Count()} categories from local cache");
+                    Debug.WriteLine($"✅ LOCAL CACHE: Found {cachedCategories.Count()} cached categories");
                     return cachedCategories.ToList();
                 }
 
-                Debug.WriteLine("❌ No categories available");
+                Debug.WriteLine("❌ NO DATA: No categories found anywhere (API down, cache empty)");
                 return new List<Category>();
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"❌ GetCategoriesAsync error: {ex.Message}");
+                Debug.WriteLine($"❌ CRITICAL ERROR in GetCategoriesAsync: {ex.Message}");
                 return new List<Category>();
             }
         }
@@ -88,12 +99,14 @@ namespace CrunchyRolls.Core.Services
         // ===== PRODUCTS =====
 
         /// <summary>
-        /// Get all products: API -> Local Cache
+        /// Get all products: API -> Local Cache -> Empty
         /// </summary>
         public async Task<List<Product>> GetProductsAsync(bool forceRefresh = false)
         {
             try
             {
+                Debug.WriteLine("📦 GetProductsAsync called");
+
                 var shouldRefreshApi = forceRefresh ||
                     (DateTime.Now - _lastApiSync).TotalMinutes > SyncIntervalMinutes;
 
@@ -101,39 +114,48 @@ namespace CrunchyRolls.Core.Services
                 {
                     try
                     {
-                        Debug.WriteLine("📡 Fetching products from API...");
+                        Debug.WriteLine("📡 Attempting to fetch products from API (localhost:5291)...");
                         var apiProducts = await _apiService.GetAsync<List<Product>>("products");
 
                         if (apiProducts != null && apiProducts.Any())
                         {
-                            // Update local cache
+                            // ✅ API success - update local cache
+                            Debug.WriteLine($"✅ API SUCCESS: Got {apiProducts.Count} products from API");
+
                             await _productLocalRepo.ClearAllAsync();
                             await _productLocalRepo.AddRangeAsync(apiProducts);
                             _lastApiSync = DateTime.Now;
 
-                            Debug.WriteLine($"✅ Synced {apiProducts.Count} products from API");
                             return apiProducts;
+                        }
+                        else
+                        {
+                            Debug.WriteLine("⚠️ API returned empty list for products");
                         }
                     }
                     catch (Exception ex)
                     {
-                        Debug.WriteLine($"⚠️ API fetch failed: {ex.Message} - using local cache");
+                        Debug.WriteLine($"❌ API FAILED: {ex.GetType().Name} - {ex.Message}");
+                        Debug.WriteLine($"   Full: {ex.StackTrace}");
                     }
                 }
 
                 // Fallback: use local cache
+                Debug.WriteLine("💾 Falling back to local cache for products...");
                 var cachedProducts = await _productLocalRepo.GetAllAsync();
+
                 if (cachedProducts.Any())
                 {
-                    Debug.WriteLine($"💾 Using {cachedProducts.Count()} products from local cache");
+                    Debug.WriteLine($"✅ LOCAL CACHE: Found {cachedProducts.Count()} cached products");
                     return cachedProducts.ToList();
                 }
 
+                Debug.WriteLine("❌ NO DATA: No products found anywhere (API down, cache empty)");
                 return new List<Product>();
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"❌ GetProductsAsync error: {ex.Message}");
+                Debug.WriteLine($"❌ CRITICAL ERROR in GetProductsAsync: {ex.Message}");
                 return new List<Product>();
             }
         }
@@ -142,28 +164,33 @@ namespace CrunchyRolls.Core.Services
         {
             try
             {
+                Debug.WriteLine($"📦 GetProductsByCategoryAsync({categoryId}) called");
+
                 // Try API first for fresh data
                 try
                 {
+                    Debug.WriteLine($"📡 Fetching products for category {categoryId} from API...");
                     var apiProducts = await _apiService.GetAsync<List<Product>>($"products/category/{categoryId}");
-                    if (apiProducts != null)
+
+                    if (apiProducts != null && apiProducts.Any())
                     {
-                        Debug.WriteLine($"✅ Got {apiProducts.Count} products for category {categoryId} from API");
+                        Debug.WriteLine($"✅ API SUCCESS: Got {apiProducts.Count} products for category {categoryId}");
                         return apiProducts;
                     }
                 }
-                catch
+                catch (Exception ex)
                 {
-                    Debug.WriteLine($"⚠️ API fetch failed - using local cache");
+                    Debug.WriteLine($"⚠️ API fetch failed: {ex.Message} - using local cache");
                 }
 
                 // Fallback: use local cache
                 var cached = await _productLocalRepo.GetByCategoryAsync(categoryId);
+                Debug.WriteLine($"💾 LOCAL CACHE: Found {cached.Count()} products for category {categoryId}");
                 return cached.ToList();
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"❌ GetProductsByCategoryAsync error: {ex.Message}");
+                Debug.WriteLine($"❌ Error in GetProductsByCategoryAsync: {ex.Message}");
                 return new List<Product>();
             }
         }
@@ -172,27 +199,33 @@ namespace CrunchyRolls.Core.Services
         {
             try
             {
+                Debug.WriteLine($"📦 GetProductByIdAsync({productId}) called");
+
                 // Try API first
                 try
                 {
+                    Debug.WriteLine($"📡 Fetching product {productId} from API...");
                     var apiProduct = await _apiService.GetAsync<Product>($"products/{productId}");
+
                     if (apiProduct != null)
                     {
-                        Debug.WriteLine($"✅ Got product {productId} from API");
+                        Debug.WriteLine($"✅ API SUCCESS: Got product {productId}");
                         return apiProduct;
                     }
                 }
-                catch
+                catch (Exception ex)
                 {
-                    Debug.WriteLine($"⚠️ API fetch failed - using local cache");
+                    Debug.WriteLine($"⚠️ API fetch failed: {ex.Message} - using local cache");
                 }
 
                 // Fallback: use local cache
-                return await _productLocalRepo.GetByIdAsync(productId);
+                var cached = await _productLocalRepo.GetByIdAsync(productId);
+                Debug.WriteLine($"💾 LOCAL CACHE: Found product {productId} = {(cached != null ? "✓" : "✗")}");
+                return cached;
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"❌ GetProductByIdAsync error: {ex.Message}");
+                Debug.WriteLine($"❌ Error in GetProductByIdAsync: {ex.Message}");
                 return null;
             }
         }
@@ -204,14 +237,14 @@ namespace CrunchyRolls.Core.Services
 
             try
             {
-                // Use local cache for search (faster)
+                Debug.WriteLine($"🔍 Searching for '{searchTerm}'");
                 var results = await _productLocalRepo.SearchAsync(searchTerm);
                 Debug.WriteLine($"🔍 Found {results.Count()} products matching '{searchTerm}'");
                 return results.ToList();
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"❌ SearchProductsAsync error: {ex.Message}");
+                Debug.WriteLine($"❌ Error in SearchProductsAsync: {ex.Message}");
                 return new List<Product>();
             }
         }
@@ -220,13 +253,14 @@ namespace CrunchyRolls.Core.Services
         {
             try
             {
+                Debug.WriteLine("📦 GetInStockProductsAsync called");
                 var inStock = await _productLocalRepo.GetInStockAsync();
-                Debug.WriteLine($"📦 {inStock.Count()} products in stock");
+                Debug.WriteLine($"📦 In stock: {inStock.Count()} products");
                 return inStock.ToList();
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"❌ GetInStockProductsAsync error: {ex.Message}");
+                Debug.WriteLine($"❌ Error in GetInStockProductsAsync: {ex.Message}");
                 return new List<Product>();
             }
         }
@@ -244,6 +278,27 @@ namespace CrunchyRolls.Core.Services
             await GetProductsAsync(forceRefresh: true);
 
             Debug.WriteLine("✅ Sync completed");
+        }
+
+        /// <summary>
+        /// Diagnostiek: Check welke data beschikbaar is
+        /// </summary>
+        public async Task<string> GetDiagnosticsAsync()
+        {
+            try
+            {
+                var cachedProducts = await _productLocalRepo.GetAllAsync();
+                var cachedCategories = await _categoryLocalRepo.GetAllAsync();
+
+                return $"📊 DIAGNOSTICS:\n" +
+                       $"  Cached Products: {cachedProducts.Count()}\n" +
+                       $"  Cached Categories: {cachedCategories.Count()}\n" +
+                       $"  Last API Sync: {_lastApiSync:g}";
+            }
+            catch (Exception ex)
+            {
+                return $"❌ Diagnostics error: {ex.Message}";
+            }
         }
 
         public void Dispose()

@@ -46,27 +46,31 @@ namespace CrunchyRolls
 
             var mauiApp = builder.Build();
 
-            // ✨ App initialisatie (DB + Auth)
-            MainThread.BeginInvokeOnMainThread(async () =>
+            // ✅ CRITICAL: Initialize database SYNCHRONOUSLY before showing UI
+            // This ensures products are loaded when ProductsPage.OnAppearing() is called
+            Debug.WriteLine("🚀 Starting app initialization...");
+
+            try
             {
-                try
-                {
-                    Debug.WriteLine("🗄️ Initializing local database...");
-                    await LocalDatabaseInitializer.InitializeAsync();
-                    Debug.WriteLine("✅ Local database ready");
+                Debug.WriteLine("🗄️ [1/3] Initializing local database...");
+                LocalDatabaseInitializer.InitializeAsync().Wait(); // ⚠️ BLOCKING - must complete before UI
+                Debug.WriteLine("✅ [1/3] Local database ready - products seeded");
 
-                    var authService = mauiApp.Services.GetRequiredService<IAuthService>();
+                Debug.WriteLine("🔐 [2/3] Initializing authentication...");
+                var authService = mauiApp.Services.GetRequiredService<IAuthService>();
+                authService.InitializeAsync().Wait(); // ⚠️ BLOCKING - must complete before UI
+                Debug.WriteLine("✅ [2/3] Authentication initialized");
 
-                    Debug.WriteLine("🔐 Authenticatie initialiseren bij app start...");
-                    await authService.InitializeAsync();
-
-                    Debug.WriteLine("✅ App gefinaliseerd");
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine($"❌ Fout bij app initialisatie: {ex.Message}");
-                }
-            });
+                Debug.WriteLine("📊 [3/3] App ready to show UI");
+                Debug.WriteLine("✅ ALL INITIALIZATION COMPLETE - UI safe to load\n");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"❌ CRITICAL ERROR during app initialization: {ex.Message}");
+                Debug.WriteLine($"   Type: {ex.GetType().Name}");
+                Debug.WriteLine($"   Stack: {ex.StackTrace}");
+                throw; // Re-throw to see the error
+            }
 
             return mauiApp;
         }
