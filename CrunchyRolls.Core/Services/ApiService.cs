@@ -18,7 +18,7 @@ namespace CrunchyRolls.Core.Services
 
         // ✅ FIXED: Gebruik localhost in plaats van 127.0.0.1
         // Op Windows kunnen deze anders werken met firewall/binding
-        private const string BaseUrl = "http://localhost:5000/api";
+        private const string BaseUrl = "http://localhost:5291/api";
 
         public ApiService()
         {
