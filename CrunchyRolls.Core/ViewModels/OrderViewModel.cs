@@ -9,7 +9,7 @@ namespace CrunchyRolls.Core.ViewModels
 {
     public class OrderViewModel : BaseViewModel
     {
-        private readonly OrderService _orderService;
+        private readonly HybridOrderService _orderService;
 
         private ObservableCollection<OrderItem> _cartItems = new();
         private string _customerName = string.Empty;
@@ -49,7 +49,7 @@ namespace CrunchyRolls.Core.ViewModels
         public ICommand PlaceOrderCommand { get; }
         public ICommand ClearCartCommand { get; }
 
-        public OrderViewModel(OrderService orderService)
+        public OrderViewModel(HybridOrderService orderService)
         {
             _orderService = orderService;
 

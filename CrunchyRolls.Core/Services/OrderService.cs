@@ -1,54 +1,47 @@
-﻿using CrunchyRolls.Models.Entities;
+﻿using CrunchyRolls.Core.Data.Repositories;
+using CrunchyRolls.Models.Entities;
 using CrunchyRolls.Models.Enums;
 using System.Diagnostics;
 
 namespace CrunchyRolls.Core.Services
 {
     /// <summary>
-    /// Service voor order en winkelwagen management.
-    /// Integratie met Order API voor persistentie.
+    /// Hybrid OrderService - In-memory winkelwagen + persistent lokale orders
+    /// 
+    /// Features:
+    /// - Persistent winkelwagen (lokale DB)
+    /// - Offline order creation (lokaal)
+    /// - Sync met API zodra beschikbaar
     /// </summary>
-    public class OrderService
+    public class HybridOrderService
     {
         private readonly ApiService _apiService;
+        private readonly OrderLocalRepository _orderLocalRepo;
 
         // In-memory winkelwagen (session)
         private readonly List<OrderItem> _currentOrderItems = new();
 
-        // Cache van bestellingen (fallback for offline)
-        private List<Order>? _cachedOrderHistory;
-
-        public OrderService(ApiService apiService)
+        public HybridOrderService(ApiService apiService)
         {
             _apiService = apiService ?? throw new ArgumentNullException(nameof(apiService));
-            Debug.WriteLine("🛒 OrderService initialized");
+            _orderLocalRepo = new OrderLocalRepository();
+
+            Debug.WriteLine("🛒 HybridOrderService initialized");
         }
 
-        // ===== WINKELWAGEN FUNCTIONALITEIT =====
+        // ===== WINKELWAGEN MANAGEMENT =====
 
-        /// <summary>
-        /// Voeg product toe aan winkelwagen
-        /// </summary>
         public void AddToCart(Product product, int quantity = 1)
         {
-            if (product == null)
-            {
-                Debug.WriteLine("⚠️ Attempted to add null product to cart");
+            if (product == null || !product.IsInStock)
                 return;
-            }
-
-            if (!product.IsInStock)
-            {
-                Debug.WriteLine($"⚠️ Product {product.Name} is not in stock");
-                return;
-            }
 
             var existingItem = _currentOrderItems.FirstOrDefault(i => i.ProductId == product.Id);
 
             if (existingItem != null)
             {
                 existingItem.Quantity += quantity;
-                Debug.WriteLine($"✅ Updated quantity for {product.Name}: {existingItem.Quantity}");
+                Debug.WriteLine($"✅ Updated {product.Name} quantity to {existingItem.Quantity}");
             }
             else
             {
@@ -59,13 +52,10 @@ namespace CrunchyRolls.Core.Services
                     Quantity = quantity,
                     UnitPrice = product.Price
                 });
-                Debug.WriteLine($"✅ Added {product.Name} to cart (qty: {quantity})");
+                Debug.WriteLine($"✅ Added {product.Name} to cart");
             }
         }
 
-        /// <summary>
-        /// Verwijder product uit winkelwagen
-        /// </summary>
         public void RemoveFromCart(int productId)
         {
             var item = _currentOrderItems.FirstOrDefault(i => i.ProductId == productId);
@@ -76,146 +66,42 @@ namespace CrunchyRolls.Core.Services
             }
         }
 
-        /// <summary>
-        /// Update quantity van product in winkelwagen
-        /// </summary>
         public void UpdateQuantity(int productId, int quantity)
         {
             var item = _currentOrderItems.FirstOrDefault(i => i.ProductId == productId);
             if (item != null)
             {
                 if (quantity <= 0)
-                {
                     RemoveFromCart(productId);
-                }
                 else
-                {
                     item.Quantity = quantity;
-                    Debug.WriteLine($"✅ Updated product {productId} quantity to {quantity}");
-                }
             }
         }
 
-        /// <summary>
-        /// Get all cart items
-        /// </summary>
-        public List<OrderItem> GetCartItems()
-        {
-            return _currentOrderItems;
-        }
+        public List<OrderItem> GetCartItems() => _currentOrderItems;
+        public void ClearCart() => _currentOrderItems.Clear();
+        public decimal GetCartTotal() => _currentOrderItems.Sum(i => i.SubTotal);
+        public int GetCartItemCount() => _currentOrderItems.Sum(i => i.Quantity);
+
+        // ===== ORDER CREATION =====
 
         /// <summary>
-        /// Clear entire cart
-        /// </summary>
-        public void ClearCart()
-        {
-            _currentOrderItems.Clear();
-            Debug.WriteLine("🛒 Cart cleared");
-        }
-
-        /// <summary>
-        /// Get cart total price
-        /// </summary>
-        public decimal GetCartTotal()
-        {
-            return _currentOrderItems.Sum(item => item.SubTotal);
-        }
-
-        /// <summary>
-        /// Get total number of items in cart
-        /// </summary>
-        public int GetCartItemCount()
-        {
-            return _currentOrderItems.Sum(item => item.Quantity);
-        }
-
-        // ===== ORDER FUNCTIONALITEIT =====
-
-        /// <summary>
-        /// Create order via API - WITH EXTENSIVE DEBUGGING
+        /// Create order: Try API, fallback to local storage
         /// </summary>
         public async Task<Order?> CreateOrderAsync(string customerName, string customerEmail, string deliveryAddress, List<OrderItem> orderItems)
         {
             try
             {
-                // ===== DEBUG: INPUT VALIDATION =====
-                Debug.WriteLine("\n╔════════════════════════════════════════════════════╗");
-                Debug.WriteLine("║          🔍 ORDER CREATION DEBUG START 🔍          ║");
-                Debug.WriteLine("╚════════════════════════════════════════════════════╝\n");
-
-                Debug.WriteLine("📧 CUSTOMER DATA:");
-                Debug.WriteLine($"   Name: '{customerName}' (empty: {string.IsNullOrWhiteSpace(customerName)})");
-                Debug.WriteLine($"   Email: '{customerEmail}' (empty: {string.IsNullOrWhiteSpace(customerEmail)})");
-                Debug.WriteLine($"   Address: '{deliveryAddress}' (empty: {string.IsNullOrWhiteSpace(deliveryAddress)})");
-
-                Debug.WriteLine("\n📦 ORDER ITEMS:");
-                Debug.WriteLine($"   Parameter count: {orderItems?.Count ?? 0}");
-                Debug.WriteLine($"   Cart count: {_currentOrderItems.Count}");
-
-                // ===== VALIDATION =====
-                if (string.IsNullOrWhiteSpace(customerName))
+                // Validation
+                if (string.IsNullOrWhiteSpace(customerName) ||
+                    string.IsNullOrWhiteSpace(customerEmail) ||
+                    string.IsNullOrWhiteSpace(deliveryAddress) ||
+                    !orderItems.Any())
                 {
-                    Debug.WriteLine("\n❌ VALIDATION FAILED: CustomerName is empty or whitespace");
+                    Debug.WriteLine("❌ Missing required order fields");
                     return null;
                 }
 
-                if (string.IsNullOrWhiteSpace(customerEmail))
-                {
-                    Debug.WriteLine("\n❌ VALIDATION FAILED: CustomerEmail is empty or whitespace");
-                    return null;
-                }
-
-                if (string.IsNullOrWhiteSpace(deliveryAddress))
-                {
-                    Debug.WriteLine("\n❌ VALIDATION FAILED: DeliveryAddress is empty or whitespace");
-                    return null;
-                }
-
-                if (orderItems == null)
-                {
-                    Debug.WriteLine("\n❌ VALIDATION FAILED: orderItems parameter is NULL");
-                    Debug.WriteLine("   This means NO items were passed from the ViewModel!");
-                    return null;
-                }
-
-                if (!orderItems.Any())
-                {
-                    Debug.WriteLine("\n❌ VALIDATION FAILED: orderItems is empty");
-                    Debug.WriteLine("   CartItems in ViewModel may not have been loaded correctly");
-                    return null;
-                }
-
-                // ===== VALIDATE EACH ITEM =====
-                Debug.WriteLine("\n📋 VALIDATING INDIVIDUAL ITEMS:");
-                for (int i = 0; i < orderItems.Count; i++)
-                {
-                    var item = orderItems[i];
-                    Debug.WriteLine($"\n   Item #{i + 1}:");
-                    Debug.WriteLine($"      ProductId: {item.ProductId} (valid: {item.ProductId > 0})");
-                    Debug.WriteLine($"      Quantity: {item.Quantity} (valid: {item.Quantity > 0})");
-                    Debug.WriteLine($"      UnitPrice: €{item.UnitPrice:F2} (valid: {item.UnitPrice >= 0})");
-
-                    if (item.ProductId <= 0)
-                    {
-                        Debug.WriteLine($"      ❌ ERROR: ProductId must be > 0, got {item.ProductId}");
-                        return null;
-                    }
-
-                    if (item.Quantity <= 0)
-                    {
-                        Debug.WriteLine($"      ❌ ERROR: Quantity must be > 0, got {item.Quantity}");
-                        return null;
-                    }
-
-                    if (item.UnitPrice < 0)
-                    {
-                        Debug.WriteLine($"      ❌ ERROR: UnitPrice cannot be negative, got €{item.UnitPrice:F2}");
-                        return null;
-                    }
-                }
-
-                // ===== BUILD ORDER =====
-                Debug.WriteLine("\n🔨 BUILDING ORDER OBJECT:");
                 var order = new Order
                 {
                     CustomerName = customerName.Trim(),
@@ -226,313 +112,242 @@ namespace CrunchyRolls.Core.Services
                     Status = OrderStatus.Pending
                 };
 
-                Debug.WriteLine($"   Total items: {order.OrderItems.Count}");
-                Debug.WriteLine($"   Subtotal: €{order.TotalAmount:F2}");
-                Debug.WriteLine($"   Status: {order.Status}");
-                Debug.WriteLine($"   Date: {order.OrderDate:yyyy-MM-dd HH:mm:ss}");
-
-                // ===== SEND TO API =====
-                Debug.WriteLine("\n📤 SENDING TO API:");
-                Debug.WriteLine($"   Endpoint: POST /api/orders");
-                Debug.WriteLine($"   Payload size: {System.Text.Json.JsonSerializer.Serialize(order).Length} bytes");
-
-                var createdOrder = await _apiService.PostAsync<Order, Order>("orders", order);
-
-                // ===== CHECK RESPONSE =====
-                if (createdOrder != null)
+                // Try to sync with API
+                Order? apiOrder = null;
+                try
                 {
-                    Debug.WriteLine("\n✅✅✅ SUCCESS! ORDER CREATED ✅✅✅");
-                    Debug.WriteLine($"   Order ID: {createdOrder.Id}");
-                    Debug.WriteLine($"   Total: €{createdOrder.TotalAmount:F2}");
-                    Debug.WriteLine($"   Items: {createdOrder.OrderItems.Count}");
-                    Debug.WriteLine($"   Status: {createdOrder.Status}");
+                    Debug.WriteLine("📤 Attempting to create order via API...");
+                    apiOrder = await _apiService.PostAsync<Order, Order>("orders", order);
 
-                    ClearCart();
-                    _cachedOrderHistory?.Add(createdOrder);
+                    if (apiOrder != null)
+                    {
+                        // Save to local cache too
+                        await _orderLocalRepo.AddAsync(apiOrder);
+                        ClearCart();
 
-                    Debug.WriteLine("\n╔════════════════════════════════════════════════════╗");
-                    Debug.WriteLine("║        ✅ ORDER CREATION DEBUG END - SUCCESS ✅   ║");
-                    Debug.WriteLine("╚════════════════════════════════════════════════════╝\n");
-
-                    return createdOrder;
+                        Debug.WriteLine($"✅ Order #{apiOrder.Id} created via API and cached locally");
+                        return apiOrder;
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    Debug.WriteLine("\n❌ API RETURNED NULL");
-                    Debug.WriteLine("   Check ApiService debug output above for error details");
-                    Debug.WriteLine("   Common causes:");
-                    Debug.WriteLine("   - API returned 400 Bad Request (check validation)");
-                    Debug.WriteLine("   - API returned 500 Internal Server Error (check database)");
-                    Debug.WriteLine("   - Network timeout (check connection)");
-                    Debug.WriteLine("   - JSON deserialization error (check model)");
-
-                    Debug.WriteLine("\n╔════════════════════════════════════════════════════╗");
-                    Debug.WriteLine("║        ❌ ORDER CREATION DEBUG END - FAILED ❌    ║");
-                    Debug.WriteLine("╚════════════════════════════════════════════════════╝\n");
-
-                    return null;
+                    Debug.WriteLine($"⚠️ API order creation failed: {ex.Message}");
+                    Debug.WriteLine("💾 Saving order locally for later sync");
                 }
+
+                // Fallback: save locally if API unavailable
+                var localOrder = await _orderLocalRepo.AddAsync(order);
+                ClearCart();
+
+                Debug.WriteLine($"✅ Order created locally (will sync to API when available)");
+                return localOrder;
             }
             catch (Exception ex)
             {
-                Debug.WriteLine("\n💥💥💥 EXCEPTION THROWN 💥💥💥");
-                Debug.WriteLine($"   Exception Type: {ex.GetType().Name}");
-                Debug.WriteLine($"   Message: {ex.Message}");
-                Debug.WriteLine($"   StackTrace:\n{ex.StackTrace}");
-
-                if (ex.InnerException != null)
-                {
-                    Debug.WriteLine($"\n   Inner Exception: {ex.InnerException.Message}");
-                    Debug.WriteLine($"   Inner StackTrace:\n{ex.InnerException.StackTrace}");
-                }
-
-                Debug.WriteLine("\n╔════════════════════════════════════════════════════╗");
-                Debug.WriteLine("║      ❌ ORDER CREATION DEBUG END - EXCEPTION ❌   ║");
-                Debug.WriteLine("╚════════════════════════════════════════════════════╝\n");
-
-                throw;
+                Debug.WriteLine($"❌ CreateOrderAsync error: {ex.Message}");
+                return null;
             }
         }
 
-        // ===== BESTELGESCHIEDENIS FUNCTIONALITEIT =====
+        // ===== ORDER RETRIEVAL =====
 
         /// <summary>
-        /// Get order history van customer (via email)
+        /// Get order history: API first, then local
         /// </summary>
         public async Task<List<Order>> GetOrderHistoryAsync(string customerEmail)
         {
+            if (string.IsNullOrWhiteSpace(customerEmail))
+                return new List<Order>();
+
             try
             {
-                if (string.IsNullOrWhiteSpace(customerEmail))
+                // Try API first
+                try
                 {
-                    Debug.WriteLine("⚠️ Attempted to get order history without email");
-                    return new List<Order>();
+                    Debug.WriteLine($"📡 Fetching orders from API for {customerEmail}...");
+                    var apiOrders = await _apiService.GetAsync<List<Order>>($"orders/customer/{Uri.EscapeDataString(customerEmail)}");
+
+                    if (apiOrders != null && apiOrders.Any())
+                    {
+                        // Cache locally
+                        await _orderLocalRepo.ClearAllAsync();
+                        await _orderLocalRepo.AddRangeAsync(apiOrders);
+
+                        Debug.WriteLine($"✅ Synced {apiOrders.Count} orders from API");
+                        return apiOrders.OrderByDescending(o => o.OrderDate).ToList();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"⚠️ API fetch failed: {ex.Message} - using local cache");
                 }
 
-                Debug.WriteLine($"📋 Fetching order history for {customerEmail}...");
-
-                var orders = await _apiService.GetAsync<List<Order>>($"orders/customer/{Uri.EscapeDataString(customerEmail)}");
-
-                if (orders != null && orders.Any())
-                {
-                    _cachedOrderHistory = orders.OrderByDescending(o => o.OrderDate).ToList();
-                    Debug.WriteLine($"✅ Loaded {orders.Count} orders for {customerEmail} from API");
-                    return _cachedOrderHistory;
-                }
+                // Fallback: use local cache
+                var localOrders = await _orderLocalRepo.GetByCustomerEmailAsync(customerEmail);
+                Debug.WriteLine($"💾 Using {localOrders.Count()} orders from local cache");
+                return localOrders.ToList();
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"⚠️ Failed to fetch order history from API: {ex.Message}");
+                Debug.WriteLine($"❌ GetOrderHistoryAsync error: {ex.Message}");
+                return new List<Order>();
             }
-
-            if (_cachedOrderHistory != null)
-            {
-                Debug.WriteLine("💾 Using cached order history");
-                return _cachedOrderHistory;
-            }
-
-            Debug.WriteLine("❌ No cached order history available");
-            return new List<Order>();
         }
 
-        /// <summary>
-        /// Get all orders (admin function)
-        /// </summary>
-        public async Task<List<Order>> GetAllOrdersAsync()
-        {
-            try
-            {
-                Debug.WriteLine("📋 Fetching all orders...");
-                var orders = await _apiService.GetAsync<List<Order>>("orders");
-
-                if (orders != null && orders.Any())
-                {
-                    Debug.WriteLine($"✅ Loaded {orders.Count} orders from API");
-                    return orders.OrderByDescending(o => o.OrderDate).ToList();
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"⚠️ Failed to fetch all orders from API: {ex.Message}");
-            }
-
-            return new List<Order>();
-        }
-
-        /// <summary>
-        /// Get specific order by ID
-        /// </summary>
         public async Task<Order?> GetOrderByIdAsync(int orderId)
         {
             try
             {
-                Debug.WriteLine($"📋 Fetching order #{orderId}...");
-                var order = await _apiService.GetAsync<Order>($"orders/{orderId}");
-
-                if (order != null)
+                // Try API first
+                try
                 {
-                    Debug.WriteLine($"✅ Loaded order #{orderId} from API");
-                    return order;
+                    var apiOrder = await _apiService.GetAsync<Order>($"orders/{orderId}");
+                    if (apiOrder != null)
+                    {
+                        Debug.WriteLine($"✅ Got order #{orderId} from API");
+                        return apiOrder;
+                    }
                 }
+                catch
+                {
+                    Debug.WriteLine($"⚠️ API fetch failed - using local cache");
+                }
+
+                // Fallback: use local cache
+                return await _orderLocalRepo.GetByIdAsync(orderId);
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"⚠️ Failed to fetch order #{orderId}: {ex.Message}");
+                Debug.WriteLine($"❌ GetOrderByIdAsync error: {ex.Message}");
+                return null;
             }
-
-            return null;
         }
 
-        /// <summary>
-        /// Get orders by status
-        /// </summary>
         public async Task<List<Order>> GetOrdersByStatusAsync(OrderStatus status)
         {
             try
             {
-                Debug.WriteLine($"📋 Fetching orders with status {status}...");
-                var orders = await _apiService.GetAsync<List<Order>>($"orders/status/{status}");
-
-                if (orders != null)
-                {
-                    Debug.WriteLine($"✅ Loaded {orders.Count} orders with status {status}");
-                    return orders;
-                }
+                var orders = await _orderLocalRepo.GetByStatusAsync(status);
+                Debug.WriteLine($"📋 Found {orders.Count()} orders with status {status}");
+                return orders.ToList();
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"⚠️ Failed to fetch orders with status {status}: {ex.Message}");
+                Debug.WriteLine($"❌ GetOrdersByStatusAsync error: {ex.Message}");
+                return new List<Order>();
             }
-
-            return new List<Order>();
         }
 
-        /// <summary>
-        /// Get recent orders
-        /// </summary>
-        public async Task<List<Order>> GetRecentOrdersAsync(int count = 10)
-        {
-            try
-            {
-                Debug.WriteLine($"📋 Fetching {count} recent orders...");
-                var orders = await _apiService.GetAsync<List<Order>>($"orders/recent?count={count}");
+        // ===== ORDER MANAGEMENT =====
 
-                if (orders != null)
-                {
-                    Debug.WriteLine($"✅ Loaded {orders.Count} recent orders");
-                    return orders;
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"⚠️ Failed to fetch recent orders: {ex.Message}");
-            }
-
-            return new List<Order>();
-        }
-
-        /// <summary>
-        /// Update order status
-        /// </summary>
         public async Task<bool> UpdateOrderStatusAsync(int orderId, OrderStatus status)
         {
             try
             {
-                Debug.WriteLine($"📝 Updating order #{orderId} status to {status}...");
-
-                var request = new { Status = status };
-                var success = await _apiService.PutAsync($"orders/{orderId}/status", request);
-
-                if (success)
+                // Try API first
+                try
                 {
-                    Debug.WriteLine($"✅ Order #{orderId} status updated successfully");
+                    var request = new { Status = status };
+                    var success = await _apiService.PutAsync($"orders/{orderId}/status", request);
+                    if (success)
+                    {
+                        // Update local cache
+                        await _orderLocalRepo.UpdateStatusAsync(orderId, status);
+                        Debug.WriteLine($"✅ Order #{orderId} status updated via API");
+                        return true;
+                    }
+                }
+                catch
+                {
+                    Debug.WriteLine($"⚠️ API update failed - updating local only");
                 }
 
-                return success;
+                // Fallback: update local
+                return await _orderLocalRepo.UpdateStatusAsync(orderId, status);
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"❌ Failed to update order #{orderId} status: {ex.Message}");
+                Debug.WriteLine($"❌ UpdateOrderStatusAsync error: {ex.Message}");
                 return false;
             }
         }
 
-        /// <summary>
-        /// Cancel order
-        /// </summary>
-        public async Task<bool> CancelOrderAsync(int orderId)
-        {
-            return await UpdateOrderStatusAsync(orderId, OrderStatus.Cancelled);
-        }
-
-        /// <summary>
-        /// Delete order
-        /// </summary>
         public async Task<bool> DeleteOrderAsync(int orderId)
         {
             try
             {
-                Debug.WriteLine($"🗑️ Deleting order #{orderId}...");
-
-                var success = await _apiService.DeleteAsync($"orders/{orderId}");
-
-                if (success)
+                // Try API first
+                try
                 {
-                    Debug.WriteLine($"✅ Order #{orderId} deleted successfully");
-
-                    if (_cachedOrderHistory != null)
+                    var success = await _apiService.DeleteAsync($"orders/{orderId}");
+                    if (success)
                     {
-                        _cachedOrderHistory.RemoveAll(o => o.Id == orderId);
+                        // Delete from local too
+                        await _orderLocalRepo.DeleteAsync(orderId);
+                        Debug.WriteLine($"✅ Order #{orderId} deleted via API");
+                        return true;
                     }
                 }
+                catch
+                {
+                    Debug.WriteLine($"⚠️ API delete failed - deleting local only");
+                }
 
-                return success;
+                // Fallback: delete local
+                return await _orderLocalRepo.DeleteAsync(orderId);
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"❌ Failed to delete order #{orderId}: {ex.Message}");
+                Debug.WriteLine($"❌ DeleteOrderAsync error: {ex.Message}");
                 return false;
             }
         }
 
-        // ===== STATISTIEKEN =====
-
         /// <summary>
-        /// Get total number of orders
+        /// Sync pending local orders to API
+        /// Call when API becomes available again
         /// </summary>
-        public int GetTotalOrdersCount()
+        public async Task SyncPendingOrdersAsync()
         {
-            return _cachedOrderHistory?.Count ?? 0;
+            try
+            {
+                Debug.WriteLine("🔄 Syncing pending orders with API...");
+
+                var pendingOrders = await _orderLocalRepo.GetPendingOrdersAsync();
+                int synced = 0;
+
+                foreach (var order in pendingOrders)
+                {
+                    try
+                    {
+                        var apiOrder = await _apiService.PostAsync<Order, Order>("orders", order);
+                        if (apiOrder != null)
+                        {
+                            // Update local record with API ID
+                            order.Id = apiOrder.Id;
+                            await _orderLocalRepo.UpdateAsync(order);
+                            synced++;
+
+                            Debug.WriteLine($"✅ Synced local order to API as #{apiOrder.Id}");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"⚠️ Failed to sync order: {ex.Message}");
+                    }
+                }
+
+                Debug.WriteLine($"✅ Synced {synced} orders with API");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"❌ SyncPendingOrdersAsync error: {ex.Message}");
+            }
         }
 
-        /// <summary>
-        /// Get total amount spent
-        /// </summary>
-        public decimal GetTotalSpent()
+        public void Dispose()
         {
-            return _cachedOrderHistory?.Sum(o => o.TotalAmount) ?? 0;
+            _orderLocalRepo?.Dispose();
         }
-
-        /// <summary>
-        /// Get recent orders count
-        /// </summary>
-        public List<Order> GetRecentOrders(int count = 5)
-        {
-            if (_cachedOrderHistory == null)
-                return new List<Order>();
-
-            return _cachedOrderHistory
-                .OrderByDescending(o => o.OrderDate)
-                .Take(count)
-                .ToList();
-        }
-    }
-
-    /// <summary>
-    /// Helper class for status update requests
-    /// </summary>
-    public class OrderStatusUpdateRequest
-    {
-        public OrderStatus Status { get; set; }
     }
 }

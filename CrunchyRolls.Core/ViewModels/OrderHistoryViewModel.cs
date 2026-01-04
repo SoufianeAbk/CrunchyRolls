@@ -17,7 +17,7 @@ namespace CrunchyRolls.Core.ViewModels
     [QueryProperty(nameof(Email), "email")]
     public class OrderHistoryViewModel : BaseViewModel
     {
-        private readonly OrderService _orderService;
+        private readonly HybridOrderService _orderService;
 
         private ObservableCollection<Order> _orders = new();
         private Order? _selectedOrder;
@@ -83,7 +83,7 @@ namespace CrunchyRolls.Core.ViewModels
         public ICommand CancelOrderCommand { get; }
         public ICommand RefreshCommand { get; }
 
-        public OrderHistoryViewModel(OrderService orderService)
+        public OrderHistoryViewModel(HybridOrderService orderService)
         {
             _orderService = orderService ?? throw new ArgumentNullException(nameof(orderService));
 

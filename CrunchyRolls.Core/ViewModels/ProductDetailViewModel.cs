@@ -8,7 +8,7 @@ namespace CrunchyRolls.Core.ViewModels
     [QueryProperty(nameof(Product), "Product")]
     public class ProductDetailViewModel : BaseViewModel
     {
-        private readonly OrderService _orderService;
+        private readonly HybridOrderService _orderService;
 
         private Product? _product;
         private int _quantity = 1;
@@ -35,7 +35,7 @@ namespace CrunchyRolls.Core.ViewModels
         public ICommand DecreaseQuantityCommand { get; }
         public ICommand AddToCartCommand { get; }
 
-        public ProductDetailViewModel(OrderService orderService)
+        public ProductDetailViewModel(HybridOrderService orderService)
         {
             _orderService = orderService;
 

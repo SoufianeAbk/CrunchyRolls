@@ -8,8 +8,8 @@ namespace CrunchyRolls.Core.ViewModels
 {
     public class ProductsViewModel : BaseViewModel
     {
-        private readonly ProductService _productService;
-        private readonly OrderService _orderService;
+        private readonly HybridProductService _productService;
+        private readonly HybridOrderService _orderService;
 
         private ObservableCollection<Category> _categories = new();
         private ObservableCollection<Product> _products = new();
@@ -64,7 +64,7 @@ namespace CrunchyRolls.Core.ViewModels
         public ICommand AddToCartCommand { get; }
         public ICommand NavigateToCartCommand { get; }
 
-        public ProductsViewModel(ProductService productService, OrderService orderService)
+        public ProductsViewModel(HybridProductService productService, HybridOrderService orderService)
         {
             _productService = productService;
             _orderService = orderService;
