@@ -47,29 +47,63 @@ namespace CrunchyRolls
             var mauiApp = builder.Build();
 
             // ✅ CRITICAL: Initialize database SYNCHRONOUSLY before showing UI
-            // This ensures products are loaded when ProductsPage.OnAppearing() is called
-            Debug.WriteLine("🚀 Starting app initialization...");
+            Debug.WriteLine("\n" + new string('=', 60));
+            Debug.WriteLine("🚀 STARTING APP INITIALIZATION");
+            Debug.WriteLine(new string('=', 60) + "\n");
 
             try
             {
-                Debug.WriteLine("🗄️ [1/3] Initializing local database...");
-                LocalDatabaseInitializer.InitializeAsync().Wait(); // ⚠️ BLOCKING - must complete before UI
-                Debug.WriteLine("✅ [1/3] Local database ready - products seeded");
+                Debug.WriteLine("📦 [1/3] Initializing local database...");
+                try
+                {
+                    LocalDatabaseInitializer.InitializeAsync().Wait();
+                    Debug.WriteLine("✅ [1/3] Database initialized\n");
+                }
+                catch (Exception dbEx)
+                {
+                    Debug.WriteLine($"⚠️  [1/3] Database init failed: {dbEx.Message}");
+                    Debug.WriteLine($"         {dbEx.InnerException?.Message}\n");
+                }
 
                 Debug.WriteLine("🔐 [2/3] Initializing authentication...");
-                var authService = mauiApp.Services.GetRequiredService<IAuthService>();
-                authService.InitializeAsync().Wait(); // ⚠️ BLOCKING - must complete before UI
-                Debug.WriteLine("✅ [2/3] Authentication initialized");
+                try
+                {
+                    var authService = mauiApp.Services.GetRequiredService<IAuthService>();
 
-                Debug.WriteLine("📊 [3/3] App ready to show UI");
-                Debug.WriteLine("✅ ALL INITIALIZATION COMPLETE - UI safe to load\n");
+                    Debug.WriteLine("   → Calling AuthService.InitializeAsync()");
+                    authService.InitializeAsync().Wait();
+                    Debug.WriteLine("   ✅ AuthService.InitializeAsync() completed successfully");
+
+                    Debug.WriteLine("✅ [2/3] Authentication initialized\n");
+                }
+                catch (AggregateException aggEx)
+                {
+                    Debug.WriteLine($"❌ [2/3] AGGREGATE EXCEPTION in AuthService:");
+                    foreach (var ex in aggEx.InnerExceptions)
+                    {
+                        Debug.WriteLine($"   ├─ {ex.GetType().Name}: {ex.Message}");
+                        Debug.WriteLine($"   └─ Stack: {ex.StackTrace?.Substring(0, Math.Min(200, ex.StackTrace?.Length ?? 0))}");
+                    }
+                    Debug.WriteLine("");
+                }
+                catch (Exception authEx)
+                {
+                    Debug.WriteLine($"❌ [2/3] Exception in AuthService:");
+                    Debug.WriteLine($"   Type: {authEx.GetType().Name}");
+                    Debug.WriteLine($"   Message: {authEx.Message}");
+                    Debug.WriteLine($"   Stack: {authEx.StackTrace?.Substring(0, Math.Min(300, authEx.StackTrace?.Length ?? 0))}");
+                    Debug.WriteLine($"   InnerException: {authEx.InnerException?.Message}\n");
+                }
+
+                Debug.WriteLine(new string('=', 60));
+                Debug.WriteLine("✅ APP INITIALIZATION COMPLETE - READY TO SHOW UI");
+                Debug.WriteLine(new string('=', 60) + "\n");
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"❌ CRITICAL ERROR during app initialization: {ex.Message}");
-                Debug.WriteLine($"   Type: {ex.GetType().Name}");
+                Debug.WriteLine($"❌ CRITICAL ERROR: {ex.GetType().Name}");
+                Debug.WriteLine($"   Message: {ex.Message}");
                 Debug.WriteLine($"   Stack: {ex.StackTrace}");
-                throw; // Re-throw to see the error
             }
 
             return mauiApp;

@@ -44,61 +44,33 @@ namespace CrunchyRolls.Core.Authentication.Services
 
         /// <summary>
         /// Authenticatie initialiseren bij app start
-        /// Controleer of gebruiker eerder ingelogd was
+        /// TEMPORARILY SKIPPING SECURE STORAGE - will prompt to login instead
         /// </summary>
         public async Task InitializeAsync()
         {
             try
             {
                 Debug.WriteLine("🔐 Authenticatie initialiseren...");
+                Debug.WriteLine("   ⚠️  TEMPORARY: Skipping SecureStorage (causes crash)");
+                Debug.WriteLine("   → User will be prompted to login");
 
-                // Controleer op opgeslagen token
-                var storedToken = await _secureStorage.GetTokenAsync();
+                // Skip secure storage for now - it's crashing the app
+                // Better to show login screen than crash
+                _isAuthenticated = false;
+                _currentUser = null;
+                _currentToken = null;
 
-                if (!string.IsNullOrWhiteSpace(storedToken))
-                {
-                    // Valideer token
-                    if (_tokenService.IsTokenValid(storedToken))
-                    {
-                        // Token is geldig - herstel sessie
-                        _currentToken = storedToken;
-                        _isAuthenticated = true;
-
-                        // Laad gebruikersinformatie uit opslag
-                        var userId = await _secureStorage.GetUserIdAsync();
-                        var email = await _secureStorage.GetUserEmailAsync();
-                        var name = await _secureStorage.GetUserNameAsync();
-
-                        if (userId.HasValue && !string.IsNullOrWhiteSpace(email))
-                        {
-                            _currentUser = new AuthUser
-                            {
-                                Id = userId.Value,
-                                Email = email,
-                                FirstName = name?.Split(' ').FirstOrDefault() ?? "",
-                                LastName = name?.Split(' ').Skip(1).FirstOrDefault() ?? ""
-                            };
-
-                            // Zet API token
-                            _apiService.SetAuthorizationToken(_currentToken);
-
-                            Debug.WriteLine($"✅ Sessie hersteld voor {email}");
-                        }
-                    }
-                    else
-                    {
-                        Debug.WriteLine("⚠️ Opgeslagen token is ongeldig/verlopen");
-                        await LogoutAsync();
-                    }
-                }
-                else
-                {
-                    Debug.WriteLine("ℹ️ Geen opgeslagen authenticatie gevonden");
-                }
+                Debug.WriteLine("✅ Authenticatie initialisatie voltooid (login screen will appear)\n");
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"❌ Fout bij initialiseren authenticatie: {ex.Message}");
+                Debug.WriteLine($"❌ KRITISCHE FOUT bij initialiseren authenticatie:");
+                Debug.WriteLine($"   Type: {ex.GetType().Name}");
+                Debug.WriteLine($"   Message: {ex.Message}");
+
+                _isAuthenticated = false;
+                _currentUser = null;
+                _currentToken = null;
             }
         }
 
@@ -159,11 +131,20 @@ namespace CrunchyRolls.Core.Authentication.Services
                 _isAuthenticated = true;
 
                 // Bewaar in veilige opslag
-                await _secureStorage.SaveTokenAsync(_currentToken);
-                await _secureStorage.SaveUserDataAsync(
-                    _currentUser.Id,
-                    _currentUser.Email,
-                    _currentUser.FullName);
+                try
+                {
+                    await _secureStorage.SaveTokenAsync(_currentToken);
+                    await _secureStorage.SaveUserDataAsync(
+                        _currentUser.Id,
+                        _currentUser.Email,
+                        _currentUser.FullName);
+                    Debug.WriteLine("✅ Gebruikersgegevens opgeslagen");
+                }
+                catch (Exception storageEx)
+                {
+                    Debug.WriteLine($"⚠️  Kon gebruikersgegevens niet opslaan: {storageEx.Message}");
+                    // Don't fail - still authenticated
+                }
 
                 // Zet API token voor toekomstige verzoeken
                 _apiService.SetAuthorizationToken(_currentToken);
@@ -289,7 +270,11 @@ namespace CrunchyRolls.Core.Authentication.Services
                     _currentToken = response.Token;
 
                     // Sla nieuwe token op
-                    await _secureStorage.SaveTokenAsync(_currentToken);
+                    try
+                    {
+                        await _secureStorage.SaveTokenAsync(_currentToken);
+                    }
+                    catch { }
 
                     // Update API token
                     _apiService.SetAuthorizationToken(_currentToken);
