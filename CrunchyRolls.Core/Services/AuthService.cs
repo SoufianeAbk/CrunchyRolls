@@ -8,6 +8,9 @@ namespace CrunchyRolls.Core.Authentication.Services
     /// <summary>
     /// Hoofdservice voor authenticatie
     /// Behandelt inloggen, uitloggen, token beheer en sessie
+    /// 
+    /// TEMPORARILY: Bypasses login and goes directly to products page
+    /// TODO: Re-enable proper authentication when needed
     /// </summary>
     public class AuthService : IAuthService
     {
@@ -44,23 +47,44 @@ namespace CrunchyRolls.Core.Authentication.Services
 
         /// <summary>
         /// Authenticatie initialiseren bij app start
-        /// TEMPORARILY SKIPPING SECURE STORAGE - will prompt to login instead
+        /// BYPASS: Automatically authenticates user and triggers LoginSucceeded event
+        /// This allows the app to go directly to products page without login screen
         /// </summary>
         public async Task InitializeAsync()
         {
             try
             {
                 Debug.WriteLine("🔐 Authenticatie initialiseren...");
-                Debug.WriteLine("   ⚠️  TEMPORARY: Skipping SecureStorage (causes crash)");
-                Debug.WriteLine("   → User will be prompted to login");
+                Debug.WriteLine("⚠️  BYPASS MODE: Skipping login, going directly to app");
 
-                // Skip secure storage for now - it's crashing the app
-                // Better to show login screen than crash
-                _isAuthenticated = false;
-                _currentUser = null;
-                _currentToken = null;
+                // Create a dummy/demo user for development
+                var demoUser = new AuthUser
+                {
+                    Id = 1,
+                    Email = "demo@localhost"
+                };
 
-                Debug.WriteLine("✅ Authenticatie initialisatie voltooid (login screen will appear)\n");
+                // Create a dummy token (doesn't validate against real API in demo mode)
+                var demoToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwibmFtZSI6IkRlbW8gVXNlciIsImlhdCI6MTUxNjIzOTAyMn0.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
+
+                // Set as authenticated
+                _isAuthenticated = true;
+                _currentUser = demoUser;
+                _currentToken = demoToken;
+
+                // Set authorization token in API
+                _apiService.SetAuthorizationToken(demoToken);
+
+                Debug.WriteLine("✅ Demo user authenticated");
+                Debug.WriteLine($"   → Email: {demoUser.Email}");
+                Debug.WriteLine($"   → User ID: {demoUser.Id}");
+                Debug.WriteLine("✅ Triggering LoginSucceeded event to show products page");
+
+                // Trigger login succeeded event - this will show the products page
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
+                    LoginSucceeded?.Invoke(this, demoUser);
+                });
             }
             catch (Exception ex)
             {

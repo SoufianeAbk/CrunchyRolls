@@ -160,11 +160,15 @@ namespace CrunchyRolls.Core.ViewModels
                 try
                 {
                     await Task.Delay(200);
-                    await Shell.Current.GoToAsync("//orders");
+
+                    // Navigate to orders - TabBar will automatically show
+                    await Shell.Current.GoToAsync("orders");
+                    Debug.WriteLine("✅ Navigated to orders successfully");
                 }
                 catch (Exception ex)
                 {
                     Debug.WriteLine($"❌ Navigation error: {ex.Message}");
+                    Debug.WriteLine($"❌ Exception type: {ex.GetType().Name}");
                 }
             });
         }

@@ -4,22 +4,15 @@ using System.Diagnostics;
 
 namespace CrunchyRolls.Core.Services
 {
-    /// <summary>
-    /// Hybrid ProductService - API first, lokale fallback
-    /// 
-    /// Strategie:
-    /// 1. Try API
-    /// 2. Cache resultaat lokaal
-    /// 3. Als API down: gebruik lokale cache
-    /// 4. Anders: gebruik seed data uit lokale DB
-    /// </summary>
+    
     public class HybridProductService
     {
         private readonly ApiService _apiService;
         private readonly ProductLocalRepository _productLocalRepo;
         private readonly CategoryLocalRepository _categoryLocalRepo;
 
-        private DateTime _lastApiSync = DateTime.MinValue;
+        private DateTime _lastCategorySync = DateTime.MinValue;
+        private DateTime _lastProductSync = DateTime.MinValue;
         private const int SyncIntervalMinutes = 60;
 
         public HybridProductService(ApiService apiService)
@@ -42,25 +35,23 @@ namespace CrunchyRolls.Core.Services
             {
                 Debug.WriteLine("📦 GetCategoriesAsync called");
 
-                // Check if we should refresh from API
                 var shouldRefreshApi = forceRefresh ||
-                    (DateTime.Now - _lastApiSync).TotalMinutes > SyncIntervalMinutes;
+                    (DateTime.Now - _lastCategorySync).TotalMinutes > SyncIntervalMinutes;
 
                 if (shouldRefreshApi)
                 {
                     try
                     {
-                        Debug.WriteLine("📡 Attempting to fetch categories from API (localhost:5291)...");
+                        Debug.WriteLine("📡 Attempting to fetch categories from API...");
                         var apiCategories = await _apiService.GetAsync<List<Category>>("categories");
 
                         if (apiCategories != null && apiCategories.Any())
                         {
-                            // ✅ API success - update local cache
                             Debug.WriteLine($"✅ API SUCCESS: Got {apiCategories.Count} categories from API");
 
                             await _categoryLocalRepo.ClearAllAsync();
                             await _categoryLocalRepo.AddRangeAsync(apiCategories);
-                            _lastApiSync = DateTime.Now;
+                            _lastCategorySync = DateTime.Now;
 
                             return apiCategories;
                         }
@@ -72,11 +63,9 @@ namespace CrunchyRolls.Core.Services
                     catch (Exception ex)
                     {
                         Debug.WriteLine($"❌ API FAILED: {ex.GetType().Name} - {ex.Message}");
-                        Debug.WriteLine($"   Stack: {ex.StackTrace}");
                     }
                 }
 
-                // Fallback: use local cache
                 Debug.WriteLine("💾 Falling back to local cache for categories...");
                 var cachedCategories = await _categoryLocalRepo.GetAllAsync();
 
@@ -98,9 +87,6 @@ namespace CrunchyRolls.Core.Services
 
         // ===== PRODUCTS =====
 
-        /// <summary>
-        /// Get all products: API -> Local Cache -> Empty
-        /// </summary>
         public async Task<List<Product>> GetProductsAsync(bool forceRefresh = false)
         {
             try
@@ -108,23 +94,22 @@ namespace CrunchyRolls.Core.Services
                 Debug.WriteLine("📦 GetProductsAsync called");
 
                 var shouldRefreshApi = forceRefresh ||
-                    (DateTime.Now - _lastApiSync).TotalMinutes > SyncIntervalMinutes;
+                    (DateTime.Now - _lastProductSync).TotalMinutes > SyncIntervalMinutes;
 
                 if (shouldRefreshApi)
                 {
                     try
                     {
-                        Debug.WriteLine("📡 Attempting to fetch products from API (localhost:5291)...");
-                        var apiProducts = await _apiService.GetAsync<List<Product>>("products");
+                        Debug.WriteLine("📡 Attempting to fetch products from API...");
+                        var apiProducts = await _apiService.GetAsync<List<Product>>("Products");
 
                         if (apiProducts != null && apiProducts.Any())
                         {
-                            // ✅ API success - update local cache
                             Debug.WriteLine($"✅ API SUCCESS: Got {apiProducts.Count} products from API");
 
                             await _productLocalRepo.ClearAllAsync();
                             await _productLocalRepo.AddRangeAsync(apiProducts);
-                            _lastApiSync = DateTime.Now;
+                            _lastProductSync = DateTime.Now;
 
                             return apiProducts;
                         }
@@ -136,11 +121,9 @@ namespace CrunchyRolls.Core.Services
                     catch (Exception ex)
                     {
                         Debug.WriteLine($"❌ API FAILED: {ex.GetType().Name} - {ex.Message}");
-                        Debug.WriteLine($"   Full: {ex.StackTrace}");
                     }
                 }
 
-                // Fallback: use local cache
                 Debug.WriteLine("💾 Falling back to local cache for products...");
                 var cachedProducts = await _productLocalRepo.GetAllAsync();
 
@@ -170,7 +153,7 @@ namespace CrunchyRolls.Core.Services
                 try
                 {
                     Debug.WriteLine($"📡 Fetching products for category {categoryId} from API...");
-                    var apiProducts = await _apiService.GetAsync<List<Product>>($"products/category/{categoryId}");
+                    var apiProducts = await _apiService.GetAsync<List<Product>>($"Products/category/{categoryId}");
 
                     if (apiProducts != null && apiProducts.Any())
                     {
@@ -205,7 +188,7 @@ namespace CrunchyRolls.Core.Services
                 try
                 {
                     Debug.WriteLine($"📡 Fetching product {productId} from API...");
-                    var apiProduct = await _apiService.GetAsync<Product>($"products/{productId}");
+                    var apiProduct = await _apiService.GetAsync<Product>($"Products/{productId}");
 
                     if (apiProduct != null)
                     {
@@ -272,7 +255,8 @@ namespace CrunchyRolls.Core.Services
         public async Task SyncWithApiAsync()
         {
             Debug.WriteLine("🔄 Force syncing with API...");
-            _lastApiSync = DateTime.MinValue; // Force refresh on next call
+            _lastCategorySync = DateTime.MinValue;
+            _lastProductSync = DateTime.MinValue;
 
             await GetCategoriesAsync(forceRefresh: true);
             await GetProductsAsync(forceRefresh: true);
@@ -293,7 +277,8 @@ namespace CrunchyRolls.Core.Services
                 return $"📊 DIAGNOSTICS:\n" +
                        $"  Cached Products: {cachedProducts.Count()}\n" +
                        $"  Cached Categories: {cachedCategories.Count()}\n" +
-                       $"  Last API Sync: {_lastApiSync:g}";
+                       $"  Last Category Sync: {_lastCategorySync:g}\n" +
+                       $"  Last Product Sync: {_lastProductSync:g}";
             }
             catch (Exception ex)
             {

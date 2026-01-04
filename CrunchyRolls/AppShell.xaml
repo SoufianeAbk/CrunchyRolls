@@ -6,7 +6,7 @@
     xmlns:local="clr-namespace:CrunchyRolls.Views"
     FlyoutBehavior="Disabled">
 
-    <!-- ===== LOGIN ROUTE ===== -->
+    <!-- ===== LOGIN ROUTE (Hidden) ===== -->
     <ShellContent
         Title="Login"
         ContentTemplate="{DataTemplate local:LoginPage}"
@@ -18,30 +18,25 @@
         ContentTemplate="{DataTemplate local:ProductDetailPage}"
         Route="productdetail" />
 
-    <!-- ===== MAIN APP ROUTES (Tabbed Interface) ===== -->
-    <TabBar x:Name="MainTabs" IsVisible="False">
-
+    <!-- ===== MAIN APP ROUTES (Tabbed Interface) - NOW VISIBLE BY DEFAULT ===== -->
+    <TabBar x:Name="MainTabs">
         <!-- Producten Tab -->
         <ShellContent 
             Title="Producten" 
             Icon="shop.png"
             ContentTemplate="{DataTemplate local:ProductsPage}"
             Route="producten" />
-
         <!-- Winkelwagen Tab (uses OrderPage) -->
         <ShellContent 
             Title="Winkelwagen" 
             Icon="cart.png"
             ContentTemplate="{DataTemplate local:OrderPage}"
             Route="cart" />
-
         <!-- Bestellingen Tab (uses OrderHistoryPage) -->
         <ShellContent 
             Title="Bestellingen" 
             Icon="orders.png"
             ContentTemplate="{DataTemplate local:OrderHistoryPage}"
             Route="orders" />
-
     </TabBar>
-
 </Shell>
