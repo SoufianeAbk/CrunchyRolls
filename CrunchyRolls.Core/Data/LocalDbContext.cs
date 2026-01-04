@@ -33,7 +33,7 @@ namespace CrunchyRolls.Core.Data.Context
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) => optionsBuilder
                 .UseSqlite($"Filename={DbPath}")
-                .EnableSensitiveDataLogging(debug: true);
+                .EnableSensitiveDataLogging();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
