@@ -1,142 +1,66 @@
-﻿using CrunchyRolls.Core.Helpers;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using CrunchyRolls.Core.Services;
 using CrunchyRolls.Models.Entities;
 using CrunchyRolls.Models.Enums;
+using Microsoft.Maui.Controls;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Windows.Input;
 
 namespace CrunchyRolls.Core.ViewModels
 {
     /// <summary>
     /// OrderHistoryViewModel - Toont alle bestellingen van een klant
-    /// Ontvangt email via:
-    /// 1. Query parameter: //orders?email=user@example.com
-    /// 2. DirectUI call van OrderHistoryPage.xaml.cs via SetCustomerEmail()
+    /// ✅ Refactored naar CommunityToolkit.Mvvm
     /// </summary>
     [QueryProperty(nameof(Email), "email")]
-    public class OrderHistoryViewModel : BaseViewModel
+    public partial class OrderHistoryViewModel : BaseViewModel
     {
         private readonly HybridOrderService _orderService;
 
-        private ObservableCollection<Order> _orders = new();
-        private Order? _selectedOrder;
-        private int _totalOrders;
-        private decimal _totalSpent;
-        private string _customerEmail = string.Empty;
-        private string _email = string.Empty;
+        [ObservableProperty]
+        private ObservableCollection<Order> orders = new();
 
-        public ObservableCollection<Order> Orders
-        {
-            get => _orders;
-            set => SetProperty(ref _orders, value);
-        }
+        [ObservableProperty]
+        private Order? selectedOrder;
 
-        public Order? SelectedOrder
-        {
-            get => _selectedOrder;
-            set => SetProperty(ref _selectedOrder, value);
-        }
+        [ObservableProperty]
+        private int totalOrders;
 
-        public int TotalOrders
-        {
-            get => _totalOrders;
-            set => SetProperty(ref _totalOrders, value);
-        }
+        [ObservableProperty]
+        private decimal totalSpent;
 
-        public decimal TotalSpent
-        {
-            get => _totalSpent;
-            set => SetProperty(ref _totalSpent, value);
-        }
+        [ObservableProperty]
+        private string customerEmail = string.Empty;
 
-        public string CustomerEmail
-        {
-            get => _customerEmail;
-            set => SetProperty(ref _customerEmail, value);
-        }
-
-        /// <summary>
-        /// Email via query parameter (//orders?email=user@example.com)
-        /// </summary>
-        public string Email
-        {
-            get => _email;
-            set
-            {
-                if (SetProperty(ref _email, value))
-                {
-                    // Wanneer email ingesteld wordt via query parameter, set deze in CustomerEmail
-                    if (!string.IsNullOrWhiteSpace(value))
-                    {
-                        Debug.WriteLine($"📧 Email ontvangen via query parameter: {value}");
-                        SetCustomerEmail(value);
-                    }
-                }
-            }
-        }
+        [ObservableProperty]
+        private string email = string.Empty;
 
         public bool HasOrders => Orders.Any();
-
-        public ICommand LoadOrdersCommand { get; }
-        public ICommand OrderTappedCommand { get; }
-        public ICommand CancelOrderCommand { get; }
-        public ICommand RefreshCommand { get; }
 
         public OrderHistoryViewModel(HybridOrderService orderService)
         {
             _orderService = orderService ?? throw new ArgumentNullException(nameof(orderService));
-
             Title = "Bestellingen";
-
-            LoadOrdersCommand = new Command(async () => await LoadOrdersAsync());
-            OrderTappedCommand = new Command<Order>(OnOrderTapped);
-            CancelOrderCommand = new Command<Order>(async (order) => await OnCancelOrderAsync(order));
-            RefreshCommand = new Command(async () => await LoadOrdersAsync());
 
             Debug.WriteLine("📋 OrderHistoryViewModel initialized");
         }
 
-        /// <summary>
-        /// Set customer email (moet ingesteld worden voor order loading)
-        /// </summary>
-        public void SetCustomerEmail(string email)
+        // ===== PROPERTY CHANGED HANDLING =====
+
+        partial void OnEmailChanged(string value)
         {
-            if (!string.IsNullOrWhiteSpace(email))
+            // Wanneer email ingesteld wordt via query parameter, set deze in CustomerEmail
+            if (!string.IsNullOrWhiteSpace(value))
             {
-                CustomerEmail = email;
-                Debug.WriteLine($"📧 Customer email set to: {email}");
+                Debug.WriteLine($"📧 Email ontvangen via query parameter: {value}");
+                SetCustomerEmail(value);
             }
         }
 
-        /// <summary>
-        /// Called from OrderHistoryPage.xaml.cs OnAppearing
-        /// Laadt bestellingen voor huidige ingelogde gebruiker
-        /// </summary>
-        public async Task OnAppearingAsync()
-        {
-            try
-            {
-                Debug.WriteLine("📱 OrderHistoryPage OnAppearing - loading orders");
+        // ===== COMMANDS =====
 
-                if (!string.IsNullOrWhiteSpace(CustomerEmail))
-                {
-                    await LoadOrdersAsync();
-                }
-                else
-                {
-                    Debug.WriteLine("⚠️ CustomerEmail not set yet");
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"❌ Error in OnAppearingAsync: {ex.Message}");
-            }
-        }
-
-        /// <summary>
-        /// Load orders for current customer from API
-        /// </summary>
+        [RelayCommand]
         public async Task LoadOrdersAsync()
         {
             if (IsBusy)
@@ -191,7 +115,8 @@ namespace CrunchyRolls.Core.ViewModels
             }
         }
 
-        private async void OnOrderTapped(Order order)
+        [RelayCommand]
+        private async void OnOrderTapped(Order? order)
         {
             if (order == null)
                 return;
@@ -227,7 +152,8 @@ namespace CrunchyRolls.Core.ViewModels
             }
         }
 
-        private async Task OnCancelOrderAsync(Order order)
+        [RelayCommand]
+        private async Task OnCancelOrderAsync(Order? order)
         {
             if (order == null || order.Status == OrderStatus.Delivered || order.Status == OrderStatus.Cancelled)
                 return;
@@ -269,7 +195,7 @@ namespace CrunchyRolls.Core.ViewModels
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"❌ Error deleting order #{order.Id}: {ex.Message}");
+                Debug.WriteLine($"❌ Error deleting order #{order?.Id}: {ex.Message}");
                 await ShowAlert(
                     "Fout",
                     $"Error: {ex.Message}",
@@ -280,6 +206,52 @@ namespace CrunchyRolls.Core.ViewModels
                 IsBusy = false;
             }
         }
+
+        [RelayCommand]
+        private async Task OnRefreshAsync()
+        {
+            await LoadOrdersAsync();
+        }
+
+        // ===== PUBLIC METHODS =====
+
+        /// <summary>
+        /// Set customer email (moet ingesteld worden voor order loading)
+        /// </summary>
+        public void SetCustomerEmail(string email)
+        {
+            if (!string.IsNullOrWhiteSpace(email))
+            {
+                CustomerEmail = email;
+                Debug.WriteLine($"📧 Customer email set to: {email}");
+            }
+        }
+
+        /// <summary>
+        /// Called from OrderHistoryPage.xaml.cs OnAppearing
+        /// </summary>
+        public async Task OnAppearingAsync()
+        {
+            try
+            {
+                Debug.WriteLine("📱 OrderHistoryPage OnAppearing - loading orders");
+
+                if (!string.IsNullOrWhiteSpace(CustomerEmail))
+                {
+                    await LoadOrdersAsync();
+                }
+                else
+                {
+                    Debug.WriteLine("⚠️ CustomerEmail not set yet");
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"❌ Error in OnAppearingAsync: {ex.Message}");
+            }
+        }
+
+        // ===== PRIVATE METHODS =====
 
         private string GetStatusText(OrderStatus status)
         {

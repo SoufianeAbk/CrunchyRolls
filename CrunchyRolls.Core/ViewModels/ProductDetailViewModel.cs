@@ -1,49 +1,40 @@
-﻿using CrunchyRolls.Core.Helpers;
-using CrunchyRolls.Models.Entities;
+﻿using CrunchyRolls.Models.Entities;
 using CrunchyRolls.Core.Services;
-using System.Windows.Input;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 
 namespace CrunchyRolls.Core.ViewModels
 {
+    /// <summary>
+    /// ProductDetailViewModel - Product detail pagina
+    /// ✅ Refactored naar CommunityToolkit.Mvvm
+    /// </summary>
     [QueryProperty(nameof(Product), "Product")]
-    public class ProductDetailViewModel : BaseViewModel
+    public partial class ProductDetailViewModel : BaseViewModel
     {
         private readonly HybridOrderService _orderService;
 
-        private Product? _product;
-        private int _quantity = 1;
+        [ObservableProperty]
+        private Product? product;
 
-        public Product? Product
-        {
-            get => _product;
-            set
-            {
-                if (SetProperty(ref _product, value))
-                {
-                    Title = _product?.Name ?? "Product Details";
-                }
-            }
-        }
-
-        public int Quantity
-        {
-            get => _quantity;
-            set => SetProperty(ref _quantity, Math.Max(1, value));
-        }
-
-        public ICommand IncreaseQuantityCommand { get; }
-        public ICommand DecreaseQuantityCommand { get; }
-        public ICommand AddToCartCommand { get; }
+        [ObservableProperty]
+        private int quantity = 1;
 
         public ProductDetailViewModel(HybridOrderService orderService)
         {
             _orderService = orderService;
-
-            IncreaseQuantityCommand = new Command(OnIncreaseQuantity);
-            DecreaseQuantityCommand = new Command(OnDecreaseQuantity);
-            AddToCartCommand = new Command(OnAddToCart);
         }
 
+        // ===== PROPERTY CHANGED HANDLING =====
+
+        partial void OnProductChanged(Product? value)
+        {
+            Title = value?.Name ?? "Product Details";
+        }
+
+        // ===== COMMANDS =====
+
+        [RelayCommand]
         private void OnIncreaseQuantity()
         {
             if (Product != null && Quantity < Product.StockQuantity)
@@ -52,6 +43,7 @@ namespace CrunchyRolls.Core.ViewModels
             }
         }
 
+        [RelayCommand]
         private void OnDecreaseQuantity()
         {
             if (Quantity > 1)
@@ -60,6 +52,7 @@ namespace CrunchyRolls.Core.ViewModels
             }
         }
 
+        [RelayCommand]
         private async void OnAddToCart()
         {
             if (Product == null || !Product.IsInStock)
@@ -72,11 +65,11 @@ namespace CrunchyRolls.Core.ViewModels
                 $"{Quantity}x {Product.Name} toegevoegd aan winkelwagen",
                 "OK");
 
-            // Ga terug naar producten pagina (met // prefix)
             await Shell.Current.GoToAsync("//producten");
         }
 
-        // Helper method for dialog
+        // ===== PRIVATE METHODS =====
+
         private static async Task ShowAlert(string title, string message, string cancel)
         {
             if (Shell.Current?.CurrentPage != null)

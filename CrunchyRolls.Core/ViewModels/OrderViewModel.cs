@@ -1,67 +1,44 @@
-﻿using CrunchyRolls.Core.Helpers;
-using CrunchyRolls.Models.Entities;
+﻿using CrunchyRolls.Models.Entities;
 using CrunchyRolls.Core.Services;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
-using System.Windows.Input;
 using System.Diagnostics;
 
 namespace CrunchyRolls.Core.ViewModels
 {
-    public class OrderViewModel : BaseViewModel
+    /// <summary>
+    /// OrderViewModel - Shopping cart & order placement
+    /// ✅ Refactored naar CommunityToolkit.Mvvm
+    /// </summary>
+    public partial class OrderViewModel : BaseViewModel
     {
         private readonly HybridOrderService _orderService;
 
-        private ObservableCollection<OrderItem> _cartItems = new();
-        private string _customerName = string.Empty;
-        private string _customerEmail = string.Empty;
-        private string _deliveryAddress = string.Empty;
+        [ObservableProperty]
+        private ObservableCollection<OrderItem> cartItems = new();
 
-        public ObservableCollection<OrderItem> CartItems
-        {
-            get => _cartItems;
-            set => SetProperty(ref _cartItems, value);
-        }
+        [ObservableProperty]
+        private string customerName = string.Empty;
 
-        public string CustomerName
-        {
-            get => _customerName;
-            set => SetProperty(ref _customerName, value);
-        }
+        [ObservableProperty]
+        private string customerEmail = string.Empty;
 
-        public string CustomerEmail
-        {
-            get => _customerEmail;
-            set => SetProperty(ref _customerEmail, value);
-        }
-
-        public string DeliveryAddress
-        {
-            get => _deliveryAddress;
-            set => SetProperty(ref _deliveryAddress, value);
-        }
+        [ObservableProperty]
+        private string deliveryAddress = string.Empty;
 
         public decimal CartTotal => CartItems.Sum(item => item.SubTotal);
         public int CartItemCount => CartItems.Sum(item => item.Quantity);
 
-        public ICommand LoadCartCommand { get; }
-        public ICommand RemoveItemCommand { get; }
-        public ICommand UpdateQuantityCommand { get; }
-        public ICommand PlaceOrderCommand { get; }
-        public ICommand ClearCartCommand { get; }
-
         public OrderViewModel(HybridOrderService orderService)
         {
             _orderService = orderService;
-
             Title = "Winkelwagen";
-
-            LoadCartCommand = new Command(LoadCart);
-            RemoveItemCommand = new Command<OrderItem>(OnRemoveItem);
-            UpdateQuantityCommand = new Command<(int productId, int quantity)>(OnUpdateQuantity);
-            PlaceOrderCommand = new Command(async () => await OnPlaceOrderAsync());
-            ClearCartCommand = new Command(OnClearCart);
         }
 
+        // ===== COMMANDS =====
+
+        [RelayCommand]
         public void LoadCart()
         {
             var items = _orderService.GetCartItems();
@@ -76,7 +53,8 @@ namespace CrunchyRolls.Core.ViewModels
             OnPropertyChanged(nameof(CartItemCount));
         }
 
-        private void OnRemoveItem(OrderItem item)
+        [RelayCommand]
+        private void OnRemoveItem(OrderItem? item)
         {
             if (item == null)
                 return;
@@ -85,12 +63,14 @@ namespace CrunchyRolls.Core.ViewModels
             LoadCart();
         }
 
+        [RelayCommand]
         private void OnUpdateQuantity((int productId, int quantity) data)
         {
             _orderService.UpdateQuantity(data.productId, data.quantity);
             LoadCart();
         }
 
+        [RelayCommand]
         private async Task OnPlaceOrderAsync()
         {
             if (IsBusy)
@@ -152,7 +132,6 @@ namespace CrunchyRolls.Core.ViewModels
                     LoadCart();
 
                     // ✅ FIXED - Navigate naar orders pagina met email parameter
-                    // Dit zorgt ervoor dat de OrderHistoryPage direct de orders van deze klant laadt
                     Debug.WriteLine($"🎯 Navigating to //orders with email: {emailForNavigation}");
                     await Shell.Current.GoToAsync($"//orders?email={Uri.EscapeDataString(emailForNavigation)}");
                 }
@@ -178,6 +157,7 @@ namespace CrunchyRolls.Core.ViewModels
             }
         }
 
+        [RelayCommand]
         private async void OnClearCart()
         {
             bool confirm = await ShowConfirmation(
@@ -193,7 +173,8 @@ namespace CrunchyRolls.Core.ViewModels
             }
         }
 
-        // Helper methods for dialogs
+        // ===== PRIVATE METHODS =====
+
         private static async Task ShowAlert(string title, string message, string cancel)
         {
             if (Shell.Current?.CurrentPage != null)

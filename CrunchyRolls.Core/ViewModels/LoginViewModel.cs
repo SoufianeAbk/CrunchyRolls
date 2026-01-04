@@ -1,6 +1,7 @@
 ﻿using CrunchyRolls.Core.Authentication.Interfaces;
 using CrunchyRolls.Core.Authentication.Models;
-using CrunchyRolls.Core.Helpers;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using System.Diagnostics;
 using System.Windows.Input;
 
@@ -9,63 +10,26 @@ namespace CrunchyRolls.Core.ViewModels
     /// <summary>
     /// ViewModel voor inlogpagina
     /// Behandelt inloglogica en formuliervalidatie
+    /// ✅ Refactored naar CommunityToolkit.Mvvm
     /// </summary>
-    public class LoginViewModel : BaseViewModel
+    public partial class LoginViewModel : BaseViewModel
     {
         private readonly IAuthService _authService;
 
-        private string _email = string.Empty;
-        private string _password = string.Empty;
-        private bool _rememberMe = false;
-        private string _errorMessage = string.Empty;
-        private bool _isErrorVisible = false;
+        [ObservableProperty]
+        private string email = string.Empty;
 
-        public string Email
-        {
-            get => _email;
-            set
-            {
-                if (SetProperty(ref _email, value))
-                {
-                    if (LoginCommand is AsyncRelayCommand cmd)
-                        cmd.RaiseCanExecuteChanged();
-                }
-            }
-        }
+        [ObservableProperty]
+        private string password = string.Empty;
 
-        public string Password
-        {
-            get => _password;
-            set
-            {
-                if (SetProperty(ref _password, value))
-                {
-                    if (LoginCommand is AsyncRelayCommand cmd)
-                        cmd.RaiseCanExecuteChanged();
-                }
-            }
-        }
+        [ObservableProperty]
+        private bool rememberMe = false;
 
-        public string ErrorMessage
-        {
-            get => _errorMessage;
-            set
-            {
-                SetProperty(ref _errorMessage, value);
-                IsErrorVisible = !string.IsNullOrWhiteSpace(value);
-            }
-        }
+        [ObservableProperty]
+        private string errorMessage = string.Empty;
 
-        public bool IsErrorVisible
-        {
-            get => _isErrorVisible;
-            set => SetProperty(ref _isErrorVisible, value);
-        }
-
-        // Commands
-        public ICommand LoginCommand { get; }
-        public ICommand RegisterCommand { get; }
-        public ICommand TestApiCommand { get; }
+        [ObservableProperty]
+        private bool isErrorVisible = false;
 
         public LoginViewModel(IAuthService authService)
         {
@@ -73,19 +37,52 @@ namespace CrunchyRolls.Core.ViewModels
 
             Title = "Inloggen";
 
-            LoginCommand = new AsyncRelayCommand(OnLoginAsync, CanLogin);
-            RegisterCommand = new Command(OnRegisterAsync);
-            TestApiCommand = new Command(async () => await TestApiConnectionAsync());
-
             _authService.LoginSucceeded += OnLoginSucceeded;
             _authService.AuthenticationFailed += OnAuthenticationFailed;
 
             Debug.WriteLine("📋 LoginViewModel geïnitialiseerd");
         }
 
-        /// <summary>
-        /// Test of API bereikbaar is
-        /// </summary>
+        // ===== COMMANDS =====
+
+        [RelayCommand]
+        private async Task OnLoginAsync()
+        {
+            Debug.WriteLine("🔐 LoginCommand triggered!");
+
+            if (!ValidateInput())
+                return;
+
+            try
+            {
+                IsBusy = true;
+                ErrorMessage = string.Empty;
+
+                var response = await _authService.LoginAsync(Email, Password);
+
+                if (!response.Success)
+                    ErrorMessage = response.Message ?? "Inloggen mislukt";
+            }
+            catch (Exception ex)
+            {
+                ErrorMessage = $"Fout: {ex.Message}";
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
+
+        [RelayCommand]
+        private async Task OnRegisterAsync()
+        {
+            await DisplayAlert(
+                "Registratie",
+                "Registratie functie wordt binnenkort toegevoegd!",
+                "OK");
+        }
+
+        [RelayCommand]
         private async Task TestApiConnectionAsync()
         {
             try
@@ -122,39 +119,7 @@ namespace CrunchyRolls.Core.ViewModels
             }
         }
 
-        // ✅ GEEN navigatie meer hier
-        public Task OnAppearingAsync()
-        {
-            Debug.WriteLine("📱 LoginPage OnAppearing");
-            return Task.CompletedTask;
-        }
-
-        private async Task OnLoginAsync()
-        {
-            Debug.WriteLine("🔐 LoginCommand triggered!");
-
-            if (!ValidateInput())
-                return;
-
-            try
-            {
-                IsBusy = true;
-                ErrorMessage = string.Empty;
-
-                var response = await _authService.LoginAsync(Email, Password);
-
-                if (!response.Success)
-                    ErrorMessage = response.Message ?? "Inloggen mislukt";
-            }
-            catch (Exception ex)
-            {
-                ErrorMessage = $"Fout: {ex.Message}";
-            }
-            finally
-            {
-                IsBusy = false;
-            }
-        }
+        // ===== PRIVATE METHODS =====
 
         private bool ValidateInput()
         {
@@ -185,32 +150,9 @@ namespace CrunchyRolls.Core.ViewModels
             return true;
         }
 
-        private bool CanLogin()
+        private async void OnLoginSucceeded(object? sender, AuthUser user)
         {
-            return !IsBusy &&
-                   !string.IsNullOrWhiteSpace(Email) &&
-                   !string.IsNullOrWhiteSpace(Password);
-        }
-
-        private async void OnRegisterAsync()
-        {
-            await DisplayAlert(
-                "Registratie",
-                "Registratie functie wordt binnenkort toegevoegd!",
-                "OK");
-        }
-
-        private Task DisplayAlert(string title, string message, string cancel)
-        {
-            return Application.Current?.MainPage != null
-                ? Application.Current.MainPage.DisplayAlert(title, message, cancel)
-                : Task.CompletedTask;
-        }
-
-        // ✅ ENIGE plek waar navigatie gebeurt
-        private void OnLoginSucceeded(object? sender, AuthUser user)
-        {
-            Debug.WriteLine("✅ LoginSucceeded - navigating to producten");
+            Debug.WriteLine("✅ LoginSucceeded - navigating to orders");
             ClearForm();
 
             MainThread.BeginInvokeOnMainThread(async () =>
@@ -239,9 +181,25 @@ namespace CrunchyRolls.Core.ViewModels
         {
             Email = string.Empty;
             Password = string.Empty;
-            _rememberMe = false;
+            RememberMe = false;
             ErrorMessage = string.Empty;
         }
+
+        // ===== PUBLIC METHODS =====
+
+        public Task OnAppearingAsync()
+        {
+            Debug.WriteLine("📱 LoginPage OnAppearing");
+            return Task.CompletedTask;
+        }
+
+        public void FillTestData()
+        {
+            Email = "test@example.com";
+            Password = "Password123";
+        }
+
+        // ===== CLEANUP =====
 
         public override void Dispose()
         {
@@ -253,10 +211,13 @@ namespace CrunchyRolls.Core.ViewModels
             ClearForm();
         }
 
-        public void FillTestData()
+        // ===== HELPER METHODS =====
+
+        private Task DisplayAlert(string title, string message, string cancel)
         {
-            Email = "test@example.com";
-            Password = "Password123";
+            return Application.Current?.MainPage != null
+                ? Application.Current.MainPage.DisplayAlert(title, message, cancel)
+                : Task.CompletedTask;
         }
     }
 }

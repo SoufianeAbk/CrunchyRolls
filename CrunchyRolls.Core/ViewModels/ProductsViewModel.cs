@@ -1,68 +1,34 @@
 ﻿using CrunchyRolls.Models.Entities;
-using CrunchyRolls.Core.Helpers;
 using CrunchyRolls.Core.Services;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
-using System.Windows.Input;
 
 namespace CrunchyRolls.Core.ViewModels
 {
-    public class ProductsViewModel : BaseViewModel
+    /// <summary>
+    /// ProductsViewModel - Products, Categories, Search
+    /// ✅ Refactored naar CommunityToolkit.Mvvm
+    /// </summary>
+    public partial class ProductsViewModel : BaseViewModel
     {
         private readonly HybridProductService _productService;
         private readonly HybridOrderService _orderService;
 
-        private ObservableCollection<Category> _categories = new();
-        private ObservableCollection<Product> _products = new();
-        private ObservableCollection<Product> _filteredProducts = new();
-        private Category? _selectedCategory;
-        private string _searchText = string.Empty;
+        [ObservableProperty]
+        private ObservableCollection<Category> categories = new();
 
-        public ObservableCollection<Category> Categories
-        {
-            get => _categories;
-            set => SetProperty(ref _categories, value);
-        }
+        [ObservableProperty]
+        private ObservableCollection<Product> products = new();
 
-        public ObservableCollection<Product> Products
-        {
-            get => _products;
-            set => SetProperty(ref _products, value);
-        }
+        [ObservableProperty]
+        private ObservableCollection<Product> filteredProducts = new();
 
-        public ObservableCollection<Product> FilteredProducts
-        {
-            get => _filteredProducts;
-            set => SetProperty(ref _filteredProducts, value);
-        }
+        [ObservableProperty]
+        private Category? selectedCategory;
 
-        public Category? SelectedCategory
-        {
-            get => _selectedCategory;
-            set
-            {
-                if (SetProperty(ref _selectedCategory, value))
-                {
-                    FilterProducts();
-                }
-            }
-        }
-
-        public string SearchText
-        {
-            get => _searchText;
-            set
-            {
-                if (SetProperty(ref _searchText, value))
-                {
-                    FilterProducts();
-                }
-            }
-        }
-
-        public ICommand LoadDataCommand { get; }
-        public ICommand ProductTappedCommand { get; }
-        public ICommand AddToCartCommand { get; }
-        public ICommand NavigateToCartCommand { get; }
+        [ObservableProperty]
+        private string searchText = string.Empty;
 
         public ProductsViewModel(HybridProductService productService, HybridOrderService orderService)
         {
@@ -70,13 +36,23 @@ namespace CrunchyRolls.Core.ViewModels
             _orderService = orderService;
 
             Title = "Producten";
-
-            LoadDataCommand = new Command(async () => await LoadDataAsync());
-            ProductTappedCommand = new Command<Product>(OnProductTapped);
-            AddToCartCommand = new Command<Product>(OnAddToCart);
-            NavigateToCartCommand = new Command(async () => await OnNavigateToCart());
         }
 
+        // ===== PROPERTY CHANGED HANDLING =====
+
+        partial void OnSelectedCategoryChanged(Category? value)
+        {
+            FilterProducts();
+        }
+
+        partial void OnSearchTextChanged(string value)
+        {
+            FilterProducts();
+        }
+
+        // ===== COMMANDS =====
+
+        [RelayCommand]
         public async Task LoadDataAsync()
         {
             if (IsBusy)
@@ -110,7 +86,6 @@ namespace CrunchyRolls.Core.ViewModels
             }
             catch (Exception ex)
             {
-                // Handle error
                 Console.WriteLine($"Error loading data: {ex.Message}");
             }
             finally
@@ -118,6 +93,49 @@ namespace CrunchyRolls.Core.ViewModels
                 IsBusy = false;
             }
         }
+
+        [RelayCommand]
+        private async void OnProductTapped(Product? product)
+        {
+            if (product == null)
+                return;
+
+            try
+            {
+                var navigationParameter = new Dictionary<string, object>
+                {
+                    { "Product", product }
+                };
+
+                await Shell.Current.GoToAsync("//productdetail", navigationParameter);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Navigation error: {ex.Message}");
+            }
+        }
+
+        [RelayCommand]
+        private async void OnAddToCart(Product? product)
+        {
+            if (product == null || !product.IsInStock)
+                return;
+
+            _orderService.AddToCart(product, 1);
+
+            await ShowAlert(
+                "Toegevoegd",
+                $"{product.Name} is toegevoegd aan je winkelwagen",
+                "OK");
+        }
+
+        [RelayCommand]
+        private async Task OnNavigateToCart()
+        {
+            await Shell.Current.GoToAsync("//cart");
+        }
+
+        // ===== PRIVATE METHODS =====
 
         private void FilterProducts()
         {
@@ -144,50 +162,6 @@ namespace CrunchyRolls.Core.ViewModels
             }
         }
 
-        /// <summary>
-        /// Navigate to product detail page when product is tapped
-        /// </summary>
-        private async void OnProductTapped(Product product)
-        {
-            if (product == null)
-                return;
-
-            try
-            {
-                // Navigate to product detail page using the correct route name
-                var navigationParameter = new Dictionary<string, object>
-                {
-                    { "Product", product }
-                };
-
-                await Shell.Current.GoToAsync("//productdetail", navigationParameter);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Navigation error: {ex.Message}");
-            }
-        }
-
-        private async void OnAddToCart(Product product)
-        {
-            if (product == null || !product.IsInStock)
-                return;
-
-            _orderService.AddToCart(product, 1);
-
-            // Toon feedback
-            await ShowAlert(
-                "Toegevoegd",
-                $"{product.Name} is toegevoegd aan je winkelwagen",
-                "OK");
-        }
-
-        private async Task OnNavigateToCart()
-        {
-            await Shell.Current.GoToAsync("//cart");
-        }
-
-        // Helper method for dialog
         private static async Task ShowAlert(string title, string message, string cancel)
         {
             if (Shell.Current?.CurrentPage != null)
