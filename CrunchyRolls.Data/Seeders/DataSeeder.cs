@@ -19,7 +19,7 @@ namespace CrunchyRolls.Data.Seeders
                 if (!await context.Users.AnyAsync())
                 {
                     Debug.WriteLine("🌱 Seeding users...");
-                    var users = GetSeedUsers();
+                    var users = GetSeedUsers(context);
                     await context.Users.AddRangeAsync(users);
                     await context.SaveChangesAsync();
                     Debug.WriteLine($"✅ Seeded {users.Count} users");
@@ -51,12 +51,10 @@ namespace CrunchyRolls.Data.Seeders
         /// <summary>
         /// Get seed users with hashed passwords
         /// </summary>
-        private static List<User> GetSeedUsers()
+        private static List<User> GetSeedUsers(ApplicationDbContext context)
         {
-            // Create a temporary UserRepository instance to hash passwords
-            // Note: In production, use dependency injection
-            var userRepo = new UserRepository(new ApplicationDbContext(
-                new Microsoft.EntityFrameworkCore.DbContextOptions<ApplicationDbContext>()));
+            // Use dependency injection to get UserRepository with proper context
+            var userRepo = new UserRepository(context);
 
             return new List<User>
             {
