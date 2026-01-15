@@ -6,14 +6,14 @@ using System.Text;
 
 namespace CrunchyRolls.Data.Repositories
 {
-    public class UserRepository : Repository<User>, IUserRepository
+    public class UserRepository : Repository<ApplicationUser>, IUserRepository
     {
         public UserRepository(ApplicationDbContext context)
             : base(context)
         {
         }
 
-        public async Task<User?> GetByEmailAsync(string email)
+        public async Task<ApplicationUser?> GetByEmailAsync(string email)
         {
             if (string.IsNullOrWhiteSpace(email))
                 return null;
@@ -31,7 +31,7 @@ namespace CrunchyRolls.Data.Repositories
                 .AnyAsync(u => u.Email.ToLower().Equals(email.ToLower()));
         }
 
-        public async Task<IEnumerable<User>> GetActiveUsersAsync()
+        public async Task<IEnumerable<ApplicationUser>> GetActiveUsersAsync()
         {
             return await _dbSet
                 .Where(u => u.IsActive)

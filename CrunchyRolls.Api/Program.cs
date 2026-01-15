@@ -1,6 +1,8 @@
 ﻿using CrunchyRolls.Data.Context;
 using CrunchyRolls.Data.Extensions;
+using CrunchyRolls.Models.Entities;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
@@ -20,6 +22,33 @@ if (string.IsNullOrEmpty(connectionString))
 // Add DbContext en Repositories
 builder.Services.AddDataServices(connectionString);
 
+// ===== ASP.NET CORE IDENTITY FRAMEWORK =====
+builder.Services.AddIdentity<ApplicationUser, IdentityRole<int>>(options =>
+{
+    // Password settings
+    options.Password.RequireDigit = true;
+    options.Password.RequiredLength = 8;
+    options.Password.RequireNonAlphanumeric = false;
+    options.Password.RequireUppercase = true;
+    options.Password.RequireLowercase = true;
+    options.Password.RequiredUniqueChars = 1;
+
+    // Lockout settings
+    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
+    options.Lockout.MaxFailedAccessAttempts = 5;
+    options.Lockout.AllowedForNewUsers = true;
+
+    // User settings
+    options.User.RequireUniqueEmail = true;
+    options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
+
+    // Sign-in settings
+    options.SignIn.RequireConfirmedEmail = false; // Set to true in production
+    options.SignIn.RequireConfirmedPhoneNumber = false;
+})
+.AddEntityFrameworkStores<ApplicationDbContext>()
+.AddDefaultTokenProviders();
+
 // ===== JWT Authentication =====
 var jwtSecret = builder.Configuration["Jwt:Secret"];
 var jwtIssuer = builder.Configuration["Jwt:Issuer"];
@@ -38,6 +67,7 @@ builder.Services
     {
         options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
         options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
     })
     .AddJwtBearer(options =>
     {
@@ -56,6 +86,15 @@ builder.Services
         };
     });
 
+// Add Authorization
+builder.Services.AddAuthorization(options =>
+{
+    // Add policies if needed
+    options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
+    options.AddPolicy("StaffOrAdmin", policy => policy.RequireRole("Staff", "Admin"));
+    options.AddPolicy("Customer", policy => policy.RequireRole("Customer", "Staff", "Admin"));
+});
+
 // Add Controllers
 builder.Services.AddControllers();
 
@@ -67,7 +106,7 @@ builder.Services.AddSwaggerGen(options =>
     {
         Title = "CrunchyRolls API",
         Version = "v1",
-        Description = "API voor CrunchyRolls Sushi Delivery Platform"
+        Description = "API voor CrunchyRolls Sushi Delivery Platform met ASP.NET Core Identity"
     });
 
     // Add JWT Security Definition
@@ -123,6 +162,55 @@ catch (Exception ex)
     throw;
 }
 
+// ============ SEED DEFAULT ROLES ============
+using (var scope = app.Services.CreateScope())
+{
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<int>>>();
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+
+    // Create default roles
+    string[] roleNames = { "Admin", "Staff", "Customer" };
+
+    foreach (var roleName in roleNames)
+    {
+        if (!await roleManager.RoleExistsAsync(roleName))
+        {
+            await roleManager.CreateAsync(new IdentityRole<int> { Name = roleName });
+            Console.WriteLine($"✅ Role '{roleName}' created");
+        }
+    }
+
+    // Create default admin user (optional)
+    var adminEmail = "admin@crunchyrolls.com";
+    var adminUser = await userManager.FindByEmailAsync(adminEmail);
+
+    if (adminUser == null)
+    {
+        adminUser = new ApplicationUser
+        {
+            UserName = adminEmail,
+            Email = adminEmail,
+            FirstName = "Admin",
+            LastName = "User",
+            EmailConfirmed = true,
+            IsActive = true,
+            CreatedDate = DateTime.UtcNow
+        };
+
+        var result = await userManager.CreateAsync(adminUser, "Admin123!");
+
+        if (result.Succeeded)
+        {
+            await userManager.AddToRoleAsync(adminUser, "Admin");
+            Console.WriteLine($"✅ Admin user created: {adminEmail} / Admin123!");
+        }
+        else
+        {
+            Console.WriteLine($"❌ Failed to create admin user: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+        }
+    }
+}
+
 // ============ HTTP REQUEST PIPELINE ============
 
 // Swagger UI (available in both Development and Production)
@@ -139,8 +227,8 @@ app.UseHttpsRedirection();
 app.UseCors("AllowAll");
 
 // ===== Authentication & Authorization =====
-app.UseAuthentication();  // ← ADD THIS
-app.UseAuthorization();
+app.UseAuthentication();  // ← Validate JWT tokens
+app.UseAuthorization();   // ← Check roles and policies
 
 // Map Controllers
 app.MapControllers();
@@ -153,4 +241,5 @@ app.MapGet("/", context =>
 });
 
 // ============ RUN ============
+Console.WriteLine("🚀 CrunchyRolls API starting with ASP.NET Core Identity...");
 app.Run();

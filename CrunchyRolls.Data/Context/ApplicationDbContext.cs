@@ -1,21 +1,32 @@
 ﻿using CrunchyRolls.Models.Entities;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace CrunchyRolls.Data.Context
 {
     /// <summary>
     /// Entity Framework Core DbContext voor CrunchyRolls applicatie.
+    /// Extends IdentityDbContext voor ASP.NET Core Identity support.
     /// Beheert alle database entities en relaties.
     /// </summary>
-    public class ApplicationDbContext : DbContext
+    public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityRole<int>, int>
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
         {
         }
 
-        // DbSets
-        public DbSet<User> Users { get; set; }
+        // ===== IDENTITY DBSETS (automatisch via base class) =====
+        // - Users (DbSet<ApplicationUser>)
+        // - Roles (DbSet<IdentityRole<int>>)
+        // - UserRoles (DbSet<IdentityUserRole<int>>)
+        // - UserClaims (DbSet<IdentityUserClaim<int>>)
+        // - UserLogins (DbSet<IdentityUserLogin<int>>)
+        // - UserTokens (DbSet<IdentityUserToken<int>>)
+        // - RoleClaims (DbSet<IdentityRoleClaim<int>>)
+
+        // ===== CUSTOM DBSETS =====
         public DbSet<Category> Categories { get; set; }
         public DbSet<Product> Products { get; set; }
         public DbSet<Order> Orders { get; set; }
@@ -32,23 +43,17 @@ namespace CrunchyRolls.Data.Context
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            // ===== BELANGRIJK: Roep base.OnModelCreating aan =====
+            // Dit configureert alle Identity tables (AspNetUsers, AspNetRoles, etc.)
             base.OnModelCreating(modelBuilder);
 
-            // User Entity Configuration
-            modelBuilder.Entity<User>(entity =>
+            // ===== CUSTOM IDENTITY CONFIGURATION =====
+
+            // ApplicationUser extra configuratie
+            modelBuilder.Entity<ApplicationUser>(entity =>
             {
-                entity.HasKey(e => e.Id);
-
-                entity.Property(e => e.Email)
-                    .IsRequired()
-                    .HasMaxLength(300);
-
-                entity.HasIndex(e => e.Email)
-                    .IsUnique();
-
-                entity.Property(e => e.PasswordHash)
-                    .IsRequired()
-                    .HasMaxLength(255);
+                // Identity configureert al: Id, Email, PasswordHash, etc.
+                // We hoeven alleen onze custom properties te configureren
 
                 entity.Property(e => e.FirstName)
                     .IsRequired()
@@ -58,11 +63,6 @@ namespace CrunchyRolls.Data.Context
                     .IsRequired()
                     .HasMaxLength(100);
 
-                entity.Property(e => e.Role)
-                    .IsRequired()
-                    .HasMaxLength(50)
-                    .HasDefaultValue("Customer");
-
                 entity.Property(e => e.CreatedDate)
                     .IsRequired()
                     .HasDefaultValue(DateTime.UtcNow);
@@ -70,9 +70,15 @@ namespace CrunchyRolls.Data.Context
                 entity.Property(e => e.IsActive)
                     .IsRequired()
                     .HasDefaultValue(true);
+
+                // Navigation naar Orders
+                entity.HasMany(e => e.Orders)
+                    .WithOne()
+                    .HasForeignKey("UserId")
+                    .OnDelete(DeleteBehavior.Restrict);
             });
 
-            // Category Entity Configuration
+            // ===== CATEGORY ENTITY CONFIGURATION =====
             modelBuilder.Entity<Category>(entity =>
             {
                 entity.HasKey(e => e.Id);
@@ -90,7 +96,7 @@ namespace CrunchyRolls.Data.Context
                     .OnDelete(DeleteBehavior.Cascade);
             });
 
-            // Product Entity Configuration
+            // ===== PRODUCT ENTITY CONFIGURATION =====
             modelBuilder.Entity<Product>(entity =>
             {
                 entity.HasKey(e => e.Id);
@@ -122,7 +128,7 @@ namespace CrunchyRolls.Data.Context
                 entity.HasIndex(e => e.CategoryId);
             });
 
-            // Order Entity Configuration
+            // ===== ORDER ENTITY CONFIGURATION =====
             modelBuilder.Entity<Order>(entity =>
             {
                 entity.HasKey(e => e.Id);
@@ -155,7 +161,7 @@ namespace CrunchyRolls.Data.Context
                 entity.HasIndex(e => e.Status);
             });
 
-            // OrderItem Entity Configuration
+            // ===== ORDERITEM ENTITY CONFIGURATION =====
             modelBuilder.Entity<OrderItem>(entity =>
             {
                 entity.HasKey(e => e.Id);

@@ -2,12 +2,12 @@
 
 namespace CrunchyRolls.Data.Repositories
 {
-    public interface IUserRepository : IRepository<User>
+    public interface IUserRepository : IRepository<ApplicationUser>
     {
         /// <summary>
         /// Get user by email address
         /// </summary>
-        Task<User?> GetByEmailAsync(string email);
+        Task<ApplicationUser?> GetByEmailAsync(string email);
 
         /// <summary>
         /// Check if user exists by email
@@ -17,7 +17,7 @@ namespace CrunchyRolls.Data.Repositories
         /// <summary>
         /// Get all active users
         /// </summary>
-        Task<IEnumerable<User>> GetActiveUsersAsync();
+        Task<IEnumerable<ApplicationUser>> GetActiveUsersAsync();
 
         /// <summary>
         /// Update last login date for user

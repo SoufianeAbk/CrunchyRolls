@@ -51,14 +51,14 @@ namespace CrunchyRolls.Data.Seeders
         /// <summary>
         /// Get seed users with hashed passwords
         /// </summary>
-        private static List<User> GetSeedUsers(ApplicationDbContext context)
+        private static List<ApplicationUser> GetSeedUsers(ApplicationDbContext context)
         {
             // Use dependency injection to get UserRepository with proper context
             var userRepo = new UserRepository(context);
 
-            return new List<User>
+            return new List<ApplicationUser>
             {
-                new User
+                new ApplicationUser
                 {
                     Id = 1,
                     Email = "test@example.com",
@@ -69,7 +69,7 @@ namespace CrunchyRolls.Data.Seeders
                     IsActive = true,
                     CreatedDate = DateTime.UtcNow
                 },
-                new User
+                new ApplicationUser
                 {
                     Id = 2,
                     Email = "admin@example.com",
@@ -80,7 +80,7 @@ namespace CrunchyRolls.Data.Seeders
                     IsActive = true,
                     CreatedDate = DateTime.UtcNow
                 },
-                new User
+                new ApplicationUser
                 {
                     Id = 3,
                     Email = "john@example.com",
@@ -91,7 +91,7 @@ namespace CrunchyRolls.Data.Seeders
                     IsActive = true,
                     CreatedDate = DateTime.UtcNow
                 },
-                new User
+                new ApplicationUser
                 {
                     Id = 4,
                     Email = "jane@example.com",
