@@ -6,7 +6,6 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 	</PropertyGroup>
 
-	<!-- NuGet Packages - SINGLE ENTRY ONLY -->
 	<ItemGroup>
 		<PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
 		<PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.0" />
@@ -19,9 +18,11 @@
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 		<PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
+
+		<PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.0" />
+		<PackageReference Include="Microsoft.AspNetCore.Identity" Version="9.0.0" />
 	</ItemGroup>
 
-	<!-- Project References -->
 	<ItemGroup>
 		<ProjectReference Include="..\CrunchyRolls.Models\CrunchyRolls.Models.csproj" />
 		<ProjectReference Include="..\CrunchyRolls.Data\CrunchyRolls.Data.csproj" />
