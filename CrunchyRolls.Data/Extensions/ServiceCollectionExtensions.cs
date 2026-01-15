@@ -1,6 +1,8 @@
 ﻿using CrunchyRolls.Data.Context;
 using CrunchyRolls.Data.Repositories;
 using CrunchyRolls.Data.Seeders;
+using CrunchyRolls.Models.Entities;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -36,14 +38,16 @@ namespace CrunchyRolls.Data.Extensions
             using (var scope = serviceProvider.CreateScope())
             {
                 var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+                var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole<int>>>();
 
                 try
                 {
-                    // Voer migrations uit
+                    // Voer migrations uit (maakt AspNet* tabellen aan als migraties bestaan)
                     await context.Database.MigrateAsync();
 
-                    // Seed data
-                    await DataSeeder.SeedDatabaseAsync(context);
+                    // Seed data (gebruik RoleManager & UserManager uit DI)
+                    await DataSeeder.SeedDatabaseAsync(context, userManager, roleManager);
                 }
                 catch (Exception ex)
                 {

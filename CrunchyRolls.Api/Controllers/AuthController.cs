@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using System.Diagnostics;
 using System.IdentityModel.Tokens.Jwt;
@@ -8,13 +7,13 @@ using System.Text;
 
 using CrunchyRolls.Core.Authentication.Models;
 using CrunchyRolls.Models.Entities;
+using CrunchyRolls.Data.Repositories;
 
 namespace CrunchyRolls.Api.Controllers
 {
     /// <summary>
-    /// Authentication controller met ASP.NET Core Identity Framework
-    /// Gebruikt UserManager en SignInManager voor user management
-    /// Genereert JWT tokens voor API authenticatie
+    /// Authentication controller voor JWT token generation
+    /// Gebruikt database users met hashed passwords
     /// </summary>
     [ApiController]
     [Route("api/[controller]")]
@@ -22,124 +21,20 @@ namespace CrunchyRolls.Api.Controllers
     {
         private readonly ILogger<AuthController> _logger;
         private readonly IConfiguration _configuration;
-        private readonly UserManager<ApplicationUser> _userManager;
-        private readonly SignInManager<ApplicationUser> _signInManager;
-        private readonly RoleManager<IdentityRole<int>> _roleManager;
+        private readonly IUserRepository _userRepository;
 
         public AuthController(
             ILogger<AuthController> logger,
             IConfiguration configuration,
-            UserManager<ApplicationUser> userManager,
-            SignInManager<ApplicationUser> signInManager,
-            RoleManager<IdentityRole<int>> roleManager)
+            IUserRepository userRepository)
         {
             _logger = logger;
             _configuration = configuration;
-            _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
-            _signInManager = signInManager ?? throw new ArgumentNullException(nameof(signInManager));
-            _roleManager = roleManager ?? throw new ArgumentNullException(nameof(roleManager));
+            _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
         }
 
         /// <summary>
-        /// Register new user
-        /// POST: /api/auth/register
-        /// </summary>
-        [HttpPost("register")]
-        public async Task<ActionResult<LoginResponse>> Register([FromBody] RegisterRequest request)
-        {
-            try
-            {
-                _logger.LogInformation($"📝 Registration attempt for {request.Email}");
-
-                // Validatie
-                if (string.IsNullOrWhiteSpace(request.Email) ||
-                    string.IsNullOrWhiteSpace(request.Password) ||
-                    string.IsNullOrWhiteSpace(request.FirstName) ||
-                    string.IsNullOrWhiteSpace(request.LastName))
-                {
-                    return BadRequest(new LoginResponse
-                    {
-                        Success = false,
-                        Message = "Alle velden zijn verplicht"
-                    });
-                }
-
-                // Check if user already exists
-                var existingUser = await _userManager.FindByEmailAsync(request.Email);
-                if (existingUser != null)
-                {
-                    return BadRequest(new LoginResponse
-                    {
-                        Success = false,
-                        Message = "Email adres is al in gebruik"
-                    });
-                }
-
-                // Create new user
-                var user = new ApplicationUser
-                {
-                    UserName = request.Email,  // Use email as username
-                    Email = request.Email,
-                    FirstName = request.FirstName,
-                    LastName = request.LastName,
-                    CreatedDate = DateTime.UtcNow,
-                    IsActive = true
-                };
-
-                // Create user with password (Identity handles hashing)
-                var result = await _userManager.CreateAsync(user, request.Password);
-
-                if (!result.Succeeded)
-                {
-                    var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-                    _logger.LogWarning($"❌ Registration failed for {request.Email}: {errors}");
-
-                    return BadRequest(new LoginResponse
-                    {
-                        Success = false,
-                        Message = $"Registratie mislukt: {errors}"
-                    });
-                }
-
-                // Add to Customer role by default
-                await _userManager.AddToRoleAsync(user, "Customer");
-
-                // Generate JWT token
-                var token = await GenerateJwtTokenAsync(user);
-
-                var authUser = new AuthUser
-                {
-                    Id = user.Id,
-                    Email = user.Email,
-                    FirstName = user.FirstName,
-                    LastName = user.LastName,
-                    Role = "Customer",
-                    CreatedDate = user.CreatedDate
-                };
-
-                _logger.LogInformation($"✅ User registered successfully: {request.Email}");
-
-                return Ok(new LoginResponse
-                {
-                    Success = true,
-                    Message = "Registratie succesvol",
-                    Token = token,
-                    User = authUser
-                });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error in register endpoint");
-                return StatusCode(500, new LoginResponse
-                {
-                    Success = false,
-                    Message = $"Server error: {ex.Message}"
-                });
-            }
-        }
-
-        /// <summary>
-        /// Login endpoint met Identity Framework
+        /// Login endpoint
         /// POST: /api/auth/login
         /// </summary>
         [HttpPost("login")]
@@ -161,8 +56,8 @@ namespace CrunchyRolls.Api.Controllers
                     });
                 }
 
-                // ===== Find user by email (Identity UserManager) =====
-                var user = await _userManager.FindByEmailAsync(request.Email);
+                // ===== Get user from database =====
+                var user = await _userRepository.GetByEmailAsync(request.Email);
 
                 if (user == null || !user.IsActive)
                 {
@@ -176,26 +71,9 @@ namespace CrunchyRolls.Api.Controllers
                     });
                 }
 
-                // ===== Verify password (Identity SignInManager) =====
-                var result = await _signInManager.CheckPasswordSignInAsync(
-                    user,
-                    request.Password,
-                    lockoutOnFailure: true);  // Enable lockout after failed attempts
-
-                if (!result.Succeeded)
+                // ===== Verify password =====
+                if (!_userRepository.VerifyPassword(request.Password, user.PasswordHash))
                 {
-                    if (result.IsLockedOut)
-                    {
-                        Debug.WriteLine($"🔒 Account locked out: {request.Email}");
-                        _logger.LogWarning($"🔒 Account locked out: {request.Email}");
-
-                        return Unauthorized(new LoginResponse
-                        {
-                            Success = false,
-                            Message = "Account tijdelijk vergrendeld. Probeer later opnieuw."
-                        });
-                    }
-
                     Debug.WriteLine($"❌ Invalid password for {request.Email}");
                     _logger.LogWarning($"❌ Invalid password attempt for {request.Email}");
 
@@ -207,7 +85,7 @@ namespace CrunchyRolls.Api.Controllers
                 }
 
                 // ===== Generate JWT Token =====
-                var token = await GenerateJwtTokenAsync(user);
+                var token = GenerateJwtToken(user);
 
                 if (string.IsNullOrWhiteSpace(token))
                 {
@@ -220,12 +98,7 @@ namespace CrunchyRolls.Api.Controllers
                 }
 
                 // ===== Update last login =====
-                user.LastLoginDate = DateTime.UtcNow;
-                await _userManager.UpdateAsync(user);
-
-                // ===== Get user roles =====
-                var roles = await _userManager.GetRolesAsync(user);
-                var userRole = roles.FirstOrDefault() ?? "Customer";
+                await _userRepository.UpdateLastLoginAsync(user.Id);
 
                 // ===== Create response =====
                 var authUser = new AuthUser
@@ -234,7 +107,7 @@ namespace CrunchyRolls.Api.Controllers
                     Email = user.Email,
                     FirstName = user.FirstName,
                     LastName = user.LastName,
-                    Role = userRole,
+                    Role = user.Role,
                     CreatedDate = user.CreatedDate
                 };
 
@@ -295,8 +168,8 @@ namespace CrunchyRolls.Api.Controllers
                     });
                 }
 
-                // Get user from Identity
-                var user = await _userManager.FindByEmailAsync(email);
+                // Get user from database to verify still exists
+                var user = await _userRepository.GetByEmailAsync(email);
                 if (user == null || !user.IsActive)
                 {
                     return Unauthorized(new LoginResponse
@@ -306,12 +179,7 @@ namespace CrunchyRolls.Api.Controllers
                     });
                 }
 
-                // Generate new token
-                var newToken = await GenerateJwtTokenAsync(user);
-
-                // Get user role
-                var roles = await _userManager.GetRolesAsync(user);
-                var userRole = roles.FirstOrDefault() ?? "Customer";
+                var newToken = GenerateJwtToken(user);
 
                 var response = new LoginResponse
                 {
@@ -324,7 +192,7 @@ namespace CrunchyRolls.Api.Controllers
                         Email = user.Email,
                         FirstName = user.FirstName,
                         LastName = user.LastName,
-                        Role = userRole
+                        Role = user.Role
                     }
                 };
 
@@ -342,9 +210,9 @@ namespace CrunchyRolls.Api.Controllers
         }
 
         /// <summary>
-        /// Generate JWT token for user met Identity claims
+        /// Generate JWT token for user
         /// </summary>
-        private async Task<string> GenerateJwtTokenAsync(ApplicationUser user)
+        private string GenerateJwtToken(ApplicationUser user)
         {
             try
             {
@@ -363,26 +231,15 @@ namespace CrunchyRolls.Api.Controllers
                 var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret));
                 var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
-                // Get user roles from Identity
-                var roles = await _userManager.GetRolesAsync(user);
-
-                // Create claims list
-                var claims = new List<Claim>
+                var claims = new[]
                 {
-                    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                    new Claim(ClaimTypes.Email, user.Email ?? string.Empty),
+                    new Claim(ClaimTypes.Email, user.Email ?? ""),
                     new Claim(ClaimTypes.Name, user.FirstName),
                     new Claim(ClaimTypes.Surname, user.LastName),
+                    new Claim(ClaimTypes.Role, user.Role),
                     new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                    new Claim(JwtRegisteredClaimNames.Email, user.Email ?? string.Empty)
+                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
                 };
-
-                // Add role claims
-                foreach (var role in roles)
-                {
-                    claims.Add(new Claim(ClaimTypes.Role, role));
-                }
 
                 var token = new JwtSecurityToken(
                     issuer: jwtIssuer,
@@ -395,7 +252,6 @@ namespace CrunchyRolls.Api.Controllers
                 var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
 
                 Debug.WriteLine($"✅ JWT Token generated for {user.Email}");
-                Debug.WriteLine($"   Roles: {string.Join(", ", roles)}");
                 Debug.WriteLine($"   Token expires in {jwtExpirationMinutes} minutes");
 
                 return tokenString;
@@ -428,16 +284,5 @@ namespace CrunchyRolls.Api.Controllers
                 return null;
             }
         }
-    }
-
-    /// <summary>
-    /// Registration request model
-    /// </summary>
-    public class RegisterRequest
-    {
-        public string Email { get; set; } = string.Empty;
-        public string Password { get; set; } = string.Empty;
-        public string FirstName { get; set; } = string.Empty;
-        public string LastName { get; set; } = string.Empty;
     }
 }

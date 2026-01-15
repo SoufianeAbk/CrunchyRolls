@@ -8,13 +8,28 @@ namespace CrunchyRolls.Data.Seeders
 {
     public static class DataSeeder
     {
-        public static async Task SeedDatabaseAsync(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
+        public static async Task SeedDatabaseAsync(
+            ApplicationDbContext context,
+            UserManager<ApplicationUser> userManager,
+            RoleManager<IdentityRole<int>> roleManager)
         {
             try
             {
-                await context.Database.MigrateAsync();
+                // DATABASE MIGRATIONS zijn al uitgevoerd door caller (service extension)
 
-                // ===== SEED USERS =====
+                // ===== SEED ROLES =====
+                string[] roleNames = { "Admin", "Staff", "Customer" };
+                foreach (var roleName in roleNames)
+                {
+                    if (!await roleManager.RoleExistsAsync(roleName))
+                    {
+                        var r = new IdentityRole<int> { Name = roleName };
+                        var rr = await roleManager.CreateAsync(r);
+                        Debug.WriteLine(rr.Succeeded ? $"✅ Role '{roleName}' created" : $"❌ Failed creating role '{roleName}': {string.Join(',', rr.Errors.Select(e => e.Description))}");
+                    }
+                }
+
+                // ===== SEED USERS (via UserManager zodat AspNetUsers wordt gebruikt) =====
                 if (!await context.Users.AnyAsync())
                 {
                     Debug.WriteLine("🌱 Seeding users...");
@@ -22,7 +37,8 @@ namespace CrunchyRolls.Data.Seeders
 
                     foreach (var user in users)
                     {
-                        await userManager.CreateAsync(user, user.Id == 2 ? "AdminPassword123" : "Password123");
+                        var password = user.Email == "admin@example.com" ? "AdminPassword123" : "Password123";
+                        await userManager.CreateAsync(user, password);
                     }
 
                     Debug.WriteLine($"✅ Seeded {users.Count} users");
@@ -57,7 +73,6 @@ namespace CrunchyRolls.Data.Seeders
             {
                 new ApplicationUser
                 {
-                    Id = "1",
                     Email = "test@example.com",
                     UserName = "test@example.com",
                     FirstName = "Test",
@@ -69,7 +84,6 @@ namespace CrunchyRolls.Data.Seeders
                 },
                 new ApplicationUser
                 {
-                    Id = "2",
                     Email = "admin@example.com",
                     UserName = "admin@example.com",
                     FirstName = "Admin",
@@ -81,7 +95,6 @@ namespace CrunchyRolls.Data.Seeders
                 },
                 new ApplicationUser
                 {
-                    Id = "3",
                     Email = "john@example.com",
                     UserName = "john@example.com",
                     FirstName = "John",
@@ -93,7 +106,6 @@ namespace CrunchyRolls.Data.Seeders
                 },
                 new ApplicationUser
                 {
-                    Id = "4",
                     Email = "jane@example.com",
                     UserName = "jane@example.com",
                     FirstName = "Jane",
@@ -106,7 +118,6 @@ namespace CrunchyRolls.Data.Seeders
             };
         }
 
-        // Rest blijft hetzelfde...
         private static List<Category> GetCategories()
         {
             return new List<Category>
