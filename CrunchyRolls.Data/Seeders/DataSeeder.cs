@@ -1,6 +1,6 @@
 ﻿using CrunchyRolls.Data.Context;
-using CrunchyRolls.Data.Repositories;
 using CrunchyRolls.Models.Entities;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
 
@@ -8,20 +8,23 @@ namespace CrunchyRolls.Data.Seeders
 {
     public static class DataSeeder
     {
-        public static async Task SeedDatabaseAsync(ApplicationDbContext context)
+        public static async Task SeedDatabaseAsync(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
         {
             try
             {
-                // Maak database aan als deze niet bestaat
                 await context.Database.MigrateAsync();
 
                 // ===== SEED USERS =====
                 if (!await context.Users.AnyAsync())
                 {
                     Debug.WriteLine("🌱 Seeding users...");
-                    var users = GetSeedUsers(context);
-                    await context.Users.AddRangeAsync(users);
-                    await context.SaveChangesAsync();
+                    var users = GetSeedUsers();
+
+                    foreach (var user in users)
+                    {
+                        await userManager.CreateAsync(user, user.Id == 2 ? "AdminPassword123" : "Password123");
+                    }
+
                     Debug.WriteLine($"✅ Seeded {users.Count} users");
                 }
 
@@ -48,63 +51,62 @@ namespace CrunchyRolls.Data.Seeders
             }
         }
 
-        /// <summary>
-        /// Get seed users with hashed passwords
-        /// </summary>
-        private static List<ApplicationUser> GetSeedUsers(ApplicationDbContext context)
+        private static List<ApplicationUser> GetSeedUsers()
         {
-            // Use dependency injection to get UserRepository with proper context
-            var userRepo = new UserRepository(context);
-
             return new List<ApplicationUser>
             {
                 new ApplicationUser
                 {
-                    Id = 1,
+                    Id = "1",
                     Email = "test@example.com",
-                    PasswordHash = userRepo.HashPassword("Password123"),
+                    UserName = "test@example.com",
                     FirstName = "Test",
                     LastName = "User",
                     Role = "Customer",
                     IsActive = true,
-                    CreatedDate = DateTime.UtcNow
+                    CreatedDate = DateTime.UtcNow,
+                    EmailConfirmed = true
                 },
                 new ApplicationUser
                 {
-                    Id = 2,
+                    Id = "2",
                     Email = "admin@example.com",
-                    PasswordHash = userRepo.HashPassword("AdminPassword123"),
+                    UserName = "admin@example.com",
                     FirstName = "Admin",
                     LastName = "User",
                     Role = "Admin",
                     IsActive = true,
-                    CreatedDate = DateTime.UtcNow
+                    CreatedDate = DateTime.UtcNow,
+                    EmailConfirmed = true
                 },
                 new ApplicationUser
                 {
-                    Id = 3,
+                    Id = "3",
                     Email = "john@example.com",
-                    PasswordHash = userRepo.HashPassword("JohnPassword123"),
+                    UserName = "john@example.com",
                     FirstName = "John",
                     LastName = "Doe",
                     Role = "Customer",
                     IsActive = true,
-                    CreatedDate = DateTime.UtcNow
+                    CreatedDate = DateTime.UtcNow,
+                    EmailConfirmed = true
                 },
                 new ApplicationUser
                 {
-                    Id = 4,
+                    Id = "4",
                     Email = "jane@example.com",
-                    PasswordHash = userRepo.HashPassword("JanePassword123"),
+                    UserName = "jane@example.com",
                     FirstName = "Jane",
                     LastName = "Smith",
                     Role = "Customer",
                     IsActive = true,
-                    CreatedDate = DateTime.UtcNow
+                    CreatedDate = DateTime.UtcNow,
+                    EmailConfirmed = true
                 }
             };
         }
 
+        // Rest blijft hetzelfde...
         private static List<Category> GetCategories()
         {
             return new List<Category>

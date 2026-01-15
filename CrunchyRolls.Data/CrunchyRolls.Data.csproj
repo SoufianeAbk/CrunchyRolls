@@ -22,11 +22,8 @@
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 
-		<PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.9" />
-
 		<!-- Identity -->
 		<PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.0" />
-		<PackageReference Include="Microsoft.AspNetCore.Identity" Version="9.0.0" />
 	</ItemGroup>
 
 	<!-- Project References -->
