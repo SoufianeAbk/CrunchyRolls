@@ -4,6 +4,7 @@ using CrunchyRolls.Data.Seeders;
 using CrunchyRolls.Models.Entities;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
@@ -141,7 +142,13 @@ try
         var userManager = services.GetRequiredService<UserManager<User>>();
         var roleManager = services.GetRequiredService<RoleManager<IdentityRole<int>>>();
 
-        // Migratie en seeding uitvoeren
+        // ===== EXECUTE MIGRATIONS FIRST =====
+        Console.WriteLine("🔄 Executing database migrations...");
+        await context.Database.MigrateAsync();
+        Console.WriteLine("✅ Migrations completed");
+
+        // ===== THEN SEED DATA =====
+        Console.WriteLine("🌱 Seeding database...");
         await DataSeeder.SeedDatabaseAsync(context, userManager, roleManager);
     }
 
@@ -150,7 +157,8 @@ try
 catch (Exception ex)
 {
     Console.WriteLine($"❌ Database initialization error: {ex.Message}");
-    Console.WriteLine($"Exception: {ex.InnerException?.Message}");
+    Console.WriteLine($"InnerException: {ex.InnerException?.Message}");
+    Console.WriteLine($"StackTrace: {ex.StackTrace}");
     throw;
 }
 
