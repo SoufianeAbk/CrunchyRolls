@@ -1,6 +1,6 @@
 ﻿using CrunchyRolls.Data.Context;
-using CrunchyRolls.Data.Repositories;
 using CrunchyRolls.Models.Entities;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
 
@@ -8,38 +8,21 @@ namespace CrunchyRolls.Data.Seeders
 {
     public static class DataSeeder
     {
-        public static async Task SeedDatabaseAsync(ApplicationDbContext context)
+        public static async Task SeedDatabaseAsync(
+            ApplicationDbContext context,
+            UserManager<User> userManager,
+            RoleManager<IdentityRole<int>> roleManager)
         {
             try
             {
-                // Maak database aan als deze niet bestaat
-                await context.Database.MigrateAsync();
+                // ===== SEED ROLES =====
+                await SeedRolesAsync(roleManager);
 
                 // ===== SEED USERS =====
-                if (!await context.Users.AnyAsync())
-                {
-                    Debug.WriteLine("🌱 Seeding users...");
-                    var users = GetSeedUsers(context);
-                    await context.Users.AddRangeAsync(users);
-                    await context.SaveChangesAsync();
-                    Debug.WriteLine($"✅ Seeded {users.Count} users");
-                }
+                await SeedUsersAsync(userManager);
 
                 // ===== SEED CATEGORIES & PRODUCTS =====
-                if (!await context.Categories.AnyAsync())
-                {
-                    Debug.WriteLine("🌱 Seeding categories and products...");
-
-                    var categories = GetCategories();
-                    await context.Categories.AddRangeAsync(categories);
-                    await context.SaveChangesAsync();
-
-                    var products = GetProducts();
-                    await context.Products.AddRangeAsync(products);
-                    await context.SaveChangesAsync();
-
-                    Debug.WriteLine($"✅ Seeded {categories.Count} categories and {products.Count} products");
-                }
+                await SeedCategoriesAndProductsAsync(context);
             }
             catch (Exception ex)
             {
@@ -49,60 +32,105 @@ namespace CrunchyRolls.Data.Seeders
         }
 
         /// <summary>
-        /// Get seed users with hashed passwords
+        /// Seed ASP.NET Identity roles
         /// </summary>
-        private static List<User> GetSeedUsers(ApplicationDbContext context)
+        private static async Task SeedRolesAsync(RoleManager<IdentityRole<int>> roleManager)
         {
-            // Use dependency injection to get UserRepository with proper context
-            var userRepo = new UserRepository(context);
+            var roles = new[] { "Admin", "Customer", "Moderator" };
 
-            return new List<User>
+            foreach (var roleName in roles)
             {
-                new User
+                if (!await roleManager.RoleExistsAsync(roleName))
                 {
-                    Id = 1,
-                    Email = "test@example.com",
-                    PasswordHash = userRepo.HashPassword("Password123"),
-                    FirstName = "Test",
-                    LastName = "User",
-                    Role = "Customer",
-                    IsActive = true,
-                    CreatedDate = DateTime.UtcNow
-                },
-                new User
-                {
-                    Id = 2,
-                    Email = "admin@example.com",
-                    PasswordHash = userRepo.HashPassword("AdminPassword123"),
-                    FirstName = "Admin",
-                    LastName = "User",
-                    Role = "Admin",
-                    IsActive = true,
-                    CreatedDate = DateTime.UtcNow
-                },
-                new User
-                {
-                    Id = 3,
-                    Email = "john@example.com",
-                    PasswordHash = userRepo.HashPassword("JohnPassword123"),
-                    FirstName = "John",
-                    LastName = "Doe",
-                    Role = "Customer",
-                    IsActive = true,
-                    CreatedDate = DateTime.UtcNow
-                },
-                new User
-                {
-                    Id = 4,
-                    Email = "jane@example.com",
-                    PasswordHash = userRepo.HashPassword("JanePassword123"),
-                    FirstName = "Jane",
-                    LastName = "Smith",
-                    Role = "Customer",
-                    IsActive = true,
-                    CreatedDate = DateTime.UtcNow
+                    Debug.WriteLine($"🌱 Creating role: {roleName}");
+                    var result = await roleManager.CreateAsync(new IdentityRole<int> { Name = roleName });
+
+                    if (result.Succeeded)
+                    {
+                        Debug.WriteLine($"✅ Role '{roleName}' created");
+                    }
+                    else
+                    {
+                        Debug.WriteLine($"⚠️ Failed to create role '{roleName}': {string.Join(", ", result.Errors.Select(e => e.Description))}");
+                    }
                 }
+            }
+        }
+
+        /// <summary>
+        /// Seed users using UserManager
+        /// </summary>
+        private static async Task SeedUsersAsync(UserManager<User> userManager)
+        {
+            var seedUsers = new[]
+            {
+                new { Email = "test@example.com", Password = "Password123!", FirstName = "Test", LastName = "User", Role = "Customer" },
+                new { Email = "admin@example.com", Password = "AdminPassword123!", FirstName = "Admin", LastName = "User", Role = "Admin" },
+                new { Email = "john@example.com", Password = "JohnPassword123!", FirstName = "John", LastName = "Doe", Role = "Customer" },
+                new { Email = "jane@example.com", Password = "JanePassword123!", FirstName = "Jane", LastName = "Smith", Role = "Customer" }
             };
+
+            foreach (var seedUser in seedUsers)
+            {
+                var userExists = await userManager.FindByEmailAsync(seedUser.Email);
+
+                if (userExists == null)
+                {
+                    Debug.WriteLine($"🌱 Creating user: {seedUser.Email}");
+
+                    var user = new User
+                    {
+                        Email = seedUser.Email,
+                        UserName = seedUser.Email,
+                        FirstName = seedUser.FirstName,
+                        LastName = seedUser.LastName,
+                        EmailConfirmed = true,
+                        IsActive = true
+                    };
+
+                    var result = await userManager.CreateAsync(user, seedUser.Password);
+
+                    if (result.Succeeded)
+                    {
+                        // Wijs rol toe aan gebruiker
+                        var roleResult = await userManager.AddToRoleAsync(user, seedUser.Role);
+
+                        if (roleResult.Succeeded)
+                        {
+                            Debug.WriteLine($"✅ User '{seedUser.Email}' created with role '{seedUser.Role}'");
+                        }
+                        else
+                        {
+                            Debug.WriteLine($"⚠️ Failed to assign role to user: {string.Join(", ", roleResult.Errors.Select(e => e.Description))}");
+                        }
+                    }
+                    else
+                    {
+                        Debug.WriteLine($"❌ Failed to create user '{seedUser.Email}': {string.Join(", ", result.Errors.Select(e => e.Description))}");
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Seed categories and products
+        /// </summary>
+        private static async Task SeedCategoriesAndProductsAsync(ApplicationDbContext context)
+        {
+            if (!await context.Categories.AnyAsync())
+            {
+                Debug.WriteLine("🌱 Seeding categories and products...");
+
+                var categories = GetCategories();
+                await context.Categories.AddRangeAsync(categories);
+                await context.SaveChangesAsync();
+
+                var products = GetProducts();
+                await context.Products.AddRangeAsync(products);
+                await context.SaveChangesAsync();
+
+                Debug.WriteLine($"✅ Seeded {categories.Count} categories and {products.Count} products");
+            }
         }
 
         private static List<Category> GetCategories()

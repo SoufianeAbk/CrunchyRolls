@@ -1,13 +1,15 @@
 ﻿using CrunchyRolls.Models.Entities;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace CrunchyRolls.Data.Context
 {
     /// <summary>
-    /// Entity Framework Core DbContext voor CrunchyRolls applicatie.
-    /// Beheert alle database entities en relaties.
+    /// Entity Framework Core IdentityDbContext voor CrunchyRolls applicatie.
+    /// Beheert alle database entities, relaties en ASP.NET Identity functies.
     /// </summary>
-    public class ApplicationDbContext : DbContext
+    public class ApplicationDbContext : IdentityDbContext<User, IdentityRole<int>, int>
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
@@ -15,7 +17,6 @@ namespace CrunchyRolls.Data.Context
         }
 
         // DbSets
-        public DbSet<User> Users { get; set; }
         public DbSet<Category> Categories { get; set; }
         public DbSet<Product> Products { get; set; }
         public DbSet<Order> Orders { get; set; }
@@ -25,7 +26,6 @@ namespace CrunchyRolls.Data.Context
         {
             base.OnConfiguring(optionsBuilder);
 
-            // Suppress the pending model changes warning that causes initialization to fail
             optionsBuilder.ConfigureWarnings(w =>
                 w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
         }
@@ -34,42 +34,65 @@ namespace CrunchyRolls.Data.Context
         {
             base.OnModelCreating(modelBuilder);
 
-            // User Entity Configuration
+            // User Entity Configuration (Identity)
             modelBuilder.Entity<User>(entity =>
             {
-                entity.HasKey(e => e.Id);
-
-                entity.Property(e => e.Email)
-                    .IsRequired()
-                    .HasMaxLength(300);
-
-                entity.HasIndex(e => e.Email)
-                    .IsUnique();
-
-                entity.Property(e => e.PasswordHash)
-                    .IsRequired()
-                    .HasMaxLength(255);
+                entity.ToTable("AspNetUsers");
 
                 entity.Property(e => e.FirstName)
-                    .IsRequired()
                     .HasMaxLength(100);
 
                 entity.Property(e => e.LastName)
-                    .IsRequired()
                     .HasMaxLength(100);
 
+                entity.Property(e => e.IsActive)
+                    .HasDefaultValue(true);
+
                 entity.Property(e => e.Role)
-                    .IsRequired()
                     .HasMaxLength(50)
                     .HasDefaultValue("Customer");
 
                 entity.Property(e => e.CreatedDate)
-                    .IsRequired()
-                    .HasDefaultValue(DateTime.UtcNow);
+                    .HasDefaultValueSql("GETUTCDATE()");
 
-                entity.Property(e => e.IsActive)
-                    .IsRequired()
-                    .HasDefaultValue(true);
+                entity.Property(e => e.LastLoginDate)
+                    .IsRequired(false);
+            });
+
+            // Role Entity Configuration
+            modelBuilder.Entity<IdentityRole<int>>(entity =>
+            {
+                entity.ToTable("AspNetRoles");
+            });
+
+            // UserRole Entity Configuration
+            modelBuilder.Entity<IdentityUserRole<int>>(entity =>
+            {
+                entity.ToTable("AspNetUserRoles");
+            });
+
+            // UserClaim Entity Configuration
+            modelBuilder.Entity<IdentityUserClaim<int>>(entity =>
+            {
+                entity.ToTable("AspNetUserClaims");
+            });
+
+            // UserLogin Entity Configuration
+            modelBuilder.Entity<IdentityUserLogin<int>>(entity =>
+            {
+                entity.ToTable("AspNetUserLogins");
+            });
+
+            // UserToken Entity Configuration
+            modelBuilder.Entity<IdentityUserToken<int>>(entity =>
+            {
+                entity.ToTable("AspNetUserTokens");
+            });
+
+            // RoleClaim Entity Configuration
+            modelBuilder.Entity<IdentityRoleClaim<int>>(entity =>
+            {
+                entity.ToTable("AspNetRoleClaims");
             });
 
             // Category Entity Configuration
@@ -153,6 +176,7 @@ namespace CrunchyRolls.Data.Context
 
                 entity.HasIndex(e => e.OrderDate);
                 entity.HasIndex(e => e.Status);
+
             });
 
             // OrderItem Entity Configuration

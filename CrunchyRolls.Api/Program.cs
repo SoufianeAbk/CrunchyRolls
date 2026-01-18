@@ -1,6 +1,9 @@
 ﻿using CrunchyRolls.Data.Context;
 using CrunchyRolls.Data.Extensions;
+using CrunchyRolls.Data.Seeders;
+using CrunchyRolls.Models.Entities;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
@@ -19,6 +22,23 @@ if (string.IsNullOrEmpty(connectionString))
 
 // Add DbContext en Repositories
 builder.Services.AddDataServices(connectionString);
+
+// ===== ASP.NET Identity =====
+builder.Services.AddIdentity<User, IdentityRole<int>>(options =>
+{
+    // Password requirements
+    options.Password.RequireDigit = true;
+    options.Password.RequiredLength = 8;
+    options.Password.RequireNonAlphanumeric = true;
+    options.Password.RequireUppercase = true;
+    options.Password.RequireLowercase = true;
+
+    // User settings
+    options.User.RequireUniqueEmail = true;
+    options.SignIn.RequireConfirmedEmail = false;
+})
+.AddEntityFrameworkStores<ApplicationDbContext>()
+.AddDefaultTokenProviders();
 
 // ===== JWT Authentication =====
 var jwtSecret = builder.Configuration["Jwt:Secret"];
@@ -111,15 +131,26 @@ builder.Services.AddCors(options =>
 // ============ BUILD APP ============
 var app = builder.Build();
 
-// ============ DATABASE INITIALIZATION ============
+// ============ DATABASE INITIALIZATION & SEEDING ============
 try
 {
-    await app.Services.InitializeDatabaseAsync();
-    Console.WriteLine("✅ Database initialized successfully");
+    using (var scope = app.Services.CreateAsyncScope())
+    {
+        var services = scope.ServiceProvider;
+        var context = services.GetRequiredService<ApplicationDbContext>();
+        var userManager = services.GetRequiredService<UserManager<User>>();
+        var roleManager = services.GetRequiredService<RoleManager<IdentityRole<int>>>();
+
+        // Migratie en seeding uitvoeren
+        await DataSeeder.SeedDatabaseAsync(context, userManager, roleManager);
+    }
+
+    Console.WriteLine("✅ Database initialized and seeded successfully");
 }
 catch (Exception ex)
 {
     Console.WriteLine($"❌ Database initialization error: {ex.Message}");
+    Console.WriteLine($"Exception: {ex.InnerException?.Message}");
     throw;
 }
 
@@ -139,7 +170,7 @@ app.UseHttpsRedirection();
 app.UseCors("AllowAll");
 
 // ===== Authentication & Authorization =====
-app.UseAuthentication();  // ← ADD THIS
+app.UseAuthentication();
 app.UseAuthorization();
 
 // Map Controllers
