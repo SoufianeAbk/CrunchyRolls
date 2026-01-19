@@ -2,11 +2,152 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="CrunchyRolls.Views.ConsentPage"
-             Title="ConsentPage">
-    <VerticalStackLayout>
-        <Label 
-            Text="Welcome to .NET MAUI!"
-            VerticalOptions="Center" 
-            HorizontalOptions="Center" />
+             Title="Accept Terms"
+             BackgroundColor="#1a1a1a">
+
+    <VerticalStackLayout Spacing="15" Padding="20" VerticalOptions="FillAndExpand">
+
+        <!-- Header -->
+        <Label Text="🔐 Welcome to CrunchyRolls"
+               FontSize="20"
+               FontAttributes="Bold"
+               TextColor="#FFD700"
+               HorizontalTextAlignment="Center"/>
+
+        <Label Text="Before you continue, please review and accept our privacy terms"
+               FontSize="13"
+               TextColor="#b0b0b0"
+               HorizontalTextAlignment="Center"/>
+
+        <!-- Scrollable Content -->
+        <ScrollView>
+            <VerticalStackLayout Spacing="12">
+
+                <!-- Privacy Policy -->
+                <Frame BorderColor="#FFD700" CornerRadius="8" Padding="15" HasShadow="True">
+                    <Grid ColumnDefinitions="*, Auto" ColumnSpacing="10">
+                        <VerticalStackLayout Grid.Column="0">
+                            <Label Text="📋 Privacy Policy"
+                                   FontSize="14"
+                                   FontAttributes="Bold"
+                                   TextColor="White"/>
+                            <Label Text="Data collection & processing consent (Required)"
+                                   FontSize="11"
+                                   TextColor="#b0b0b0"/>
+                        </VerticalStackLayout>
+                        <CheckBox Grid.Column="1"
+                                  x:Name="PrivacyPolicyCheckBox"
+                                  Color="#FFD700"
+                                  VerticalOptions="Center"/>
+                    </Grid>
+                </Frame>
+
+                <!-- Terms & Conditions -->
+                <Frame BorderColor="#FFD700" CornerRadius="8" Padding="15" HasShadow="True">
+                    <Grid ColumnDefinitions="*, Auto" ColumnSpacing="10">
+                        <VerticalStackLayout Grid.Column="0">
+                            <Label Text="⚖️ Terms & Conditions"
+                                   FontSize="14"
+                                   FontAttributes="Bold"
+                                   TextColor="White"/>
+                            <Label Text="I accept the terms and conditions (Required)"
+                                   FontSize="11"
+                                   TextColor="#b0b0b0"/>
+                        </VerticalStackLayout>
+                        <CheckBox Grid.Column="1"
+                                  x:Name="TermsCheckBox"
+                                  Color="#FFD700"
+                                  VerticalOptions="Center"/>
+                    </Grid>
+                </Frame>
+
+                <!-- Data Processing -->
+                <Frame BorderColor="#FFD700" CornerRadius="8" Padding="15" HasShadow="True">
+                    <Grid ColumnDefinitions="*, Auto" ColumnSpacing="10">
+                        <VerticalStackLayout Grid.Column="0">
+                            <Label Text="📊 Data Processing"
+                                   FontSize="14"
+                                   FontAttributes="Bold"
+                                   TextColor="White"/>
+                            <Label Text="Allow us to process your data (Required)"
+                                   FontSize="11"
+                                   TextColor="#b0b0b0"/>
+                        </VerticalStackLayout>
+                        <CheckBox Grid.Column="1"
+                                  x:Name="DataProcessingCheckBox"
+                                  Color="#FFD700"
+                                  VerticalOptions="Center"/>
+                    </Grid>
+                </Frame>
+
+                <!-- Optional: Marketing -->
+                <Frame BorderColor="#FFD700" CornerRadius="8" Padding="15" HasShadow="True">
+                    <Grid ColumnDefinitions="*, Auto" ColumnSpacing="10">
+                        <VerticalStackLayout Grid.Column="0">
+                            <Label Text="📧 Marketing (Optional)"
+                                   FontSize="14"
+                                   FontAttributes="Bold"
+                                   TextColor="White"/>
+                            <Label Text="Receive promotional emails and offers"
+                                   FontSize="11"
+                                   TextColor="#b0b0b0"/>
+                        </VerticalStackLayout>
+                        <CheckBox Grid.Column="1"
+                                  x:Name="MarketingCheckBox"
+                                  Color="#FFD700"
+                                  VerticalOptions="Center"/>
+                    </Grid>
+                </Frame>
+
+                <!-- Optional: Cookies -->
+                <Frame BorderColor="#FFD700" CornerRadius="8" Padding="15" HasShadow="True">
+                    <Grid ColumnDefinitions="*, Auto" ColumnSpacing="10">
+                        <VerticalStackLayout Grid.Column="0">
+                            <Label Text="🍪 Cookies (Optional)"
+                                   FontSize="14"
+                                   FontAttributes="Bold"
+                                   TextColor="White"/>
+                            <Label Text="Allow analytics and performance tracking"
+                                   FontSize="11"
+                                   TextColor="#b0b0b0"/>
+                        </VerticalStackLayout>
+                        <CheckBox Grid.Column="1"
+                                  x:Name="CookiesCheckBox"
+                                  Color="#FFD700"
+                                  VerticalOptions="Center"/>
+                    </Grid>
+                </Frame>
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- Actions -->
+        <VerticalStackLayout Spacing="10" VerticalOptions="End">
+
+            <Button Text="✅ Accept & Continue"
+                    x:Name="AcceptButton"
+                    Background="#4CAF50"
+                    TextColor="White"
+                    Padding="15"
+                    CornerRadius="8"
+                    FontAttributes="Bold"
+                    Clicked="OnAcceptClicked"/>
+
+            <Button Text="❌ Decline"
+                    Background="#FF6B6B"
+                    TextColor="White"
+                    Padding="15"
+                    CornerRadius="8"
+                    FontAttributes="Bold"
+                    Clicked="OnDeclineClicked"/>
+
+            <Label Text="You must accept required terms to continue"
+                   FontSize="10"
+                   TextColor="#b0b0b0"
+                   HorizontalTextAlignment="Center"/>
+
+        </VerticalStackLayout>
+
     </VerticalStackLayout>
+
 </ContentPage>

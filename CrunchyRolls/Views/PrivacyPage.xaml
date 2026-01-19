@@ -1,12 +1,219 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="CrunchyRolls.Views.NewPage1"
-             Title="NewPage1">
-    <VerticalStackLayout>
-        <Label 
-            Text="Welcome to .NET MAUI!"
-            VerticalOptions="Center" 
-            HorizontalOptions="Center" />
-    </VerticalStackLayout>
+             x:Class="CrunchyRolls.Views.PrivacyPage"
+             Title="🔒 Privacy & GDPR Settings"
+             BackgroundColor="#1a1a1a">
+
+    <Grid RowDefinitions="*, Auto" Padding="0">
+        <!-- Content -->
+        <ScrollView Grid.Row="0">
+            <VerticalStackLayout Spacing="20" Padding="20">
+
+                <!-- Header -->
+                <Frame BorderColor="#FFD700" 
+                       BorderWidth="2" 
+                       CornerRadius="10" 
+                       Padding="15"
+                       HasShadow="True">
+                    <VerticalStackLayout Spacing="5">
+                        <Label Text="🔐 GDPR Compliance"
+                               FontSize="18"
+                               FontAttributes="Bold"
+                               TextColor="#FFD700"/>
+                        <Label Text="Manage your privacy settings and data"
+                               FontSize="13"
+                               TextColor="#b0b0b0"/>
+                    </VerticalStackLayout>
+                </Frame>
+
+                <!-- Status Message -->
+                <Frame IsVisible="{Binding StatusMessage, Converter={StaticResource InvertedBoolConverter}}"
+                       BorderColor="#FF6B6B"
+                       Padding="10"
+                       CornerRadius="8">
+                    <Label Text="{Binding StatusMessage}"
+                           TextColor="#FF6B6B"
+                           FontSize="12"/>
+                </Frame>
+
+                <!-- Loading Indicator -->
+                <ActivityIndicator IsRunning="{Binding IsLoading}"
+                                   IsVisible="{Binding IsLoading}"
+                                   Color="#FFD700"
+                                   Scale="1.5"/>
+
+                <!-- Consent Toggles -->
+                <Label Text="Consent Preferences"
+                       FontSize="16"
+                       FontAttributes="Bold"
+                       TextColor="#FFD700"/>
+
+                <!-- Privacy Policy Consent -->
+                <Frame BorderColor="#FFD700" CornerRadius="8" Padding="15" HasShadow="True">
+                    <Grid ColumnDefinitions="*, Auto" ColumnSpacing="10">
+                        <VerticalStackLayout Grid.Column="0">
+                            <Label Text="📋 Privacy Policy"
+                                   FontSize="14"
+                                   FontAttributes="Bold"
+                                   TextColor="White"/>
+                            <Label Text="I accept the privacy policy and data processing"
+                                   FontSize="12"
+                                   TextColor="#b0b0b0"/>
+                        </VerticalStackLayout>
+                        <CheckBox Grid.Column="1"
+                                  IsChecked="{Binding ConsentPrivacyPolicy}"
+                                  Color="#FFD700"
+                                  VerticalOptions="Center"/>
+                    </Grid>
+                </Frame>
+
+                <!-- Marketing Consent -->
+                <Frame BorderColor="#FFD700" CornerRadius="8" Padding="15" HasShadow="True">
+                    <Grid ColumnDefinitions="*, Auto" ColumnSpacing="10">
+                        <VerticalStackLayout Grid.Column="0">
+                            <Label Text="📧 Marketing & Newsletter"
+                                   FontSize="14"
+                                   FontAttributes="Bold"
+                                   TextColor="White"/>
+                            <Label Text="I want to receive promotional emails (optional)"
+                                   FontSize="12"
+                                   TextColor="#b0b0b0"/>
+                        </VerticalStackLayout>
+                        <CheckBox Grid.Column="1"
+                                  IsChecked="{Binding ConsentMarketing}"
+                                  Color="#FFD700"
+                                  VerticalOptions="Center"/>
+                    </Grid>
+                </Frame>
+
+                <!-- Cookies Consent -->
+                <Frame BorderColor="#FFD700" CornerRadius="8" Padding="15" HasShadow="True">
+                    <Grid ColumnDefinitions="*, Auto" ColumnSpacing="10">
+                        <VerticalStackLayout Grid.Column="0">
+                            <Label Text="🍪 Cookies & Analytics"
+                                   FontSize="14"
+                                   FontAttributes="Bold"
+                                   TextColor="White"/>
+                            <Label Text="Allow cookies for analytics and improvements (optional)"
+                                   FontSize="12"
+                                   TextColor="#b0b0b0"/>
+                        </VerticalStackLayout>
+                        <CheckBox Grid.Column="1"
+                                  IsChecked="{Binding ConsentCookies}"
+                                  Color="#FFD700"
+                                  VerticalOptions="Center"/>
+                    </Grid>
+                </Frame>
+
+                <!-- Terms Consent -->
+                <Frame BorderColor="#FFD700" CornerRadius="8" Padding="15" HasShadow="True">
+                    <Grid ColumnDefinitions="*, Auto" ColumnSpacing="10">
+                        <VerticalStackLayout Grid.Column="0">
+                            <Label Text="⚖️ Terms & Conditions"
+                                   FontSize="14"
+                                   FontAttributes="Bold"
+                                   TextColor="White"/>
+                            <Label Text="I accept the terms and conditions"
+                                   FontSize="12"
+                                   TextColor="#b0b0b0"/>
+                        </VerticalStackLayout>
+                        <CheckBox Grid.Column="1"
+                                  IsChecked="{Binding ConsentTermsConditions}"
+                                  Color="#FFD700"
+                                  VerticalOptions="Center"/>
+                    </Grid>
+                </Frame>
+
+                <!-- Data Actions Section -->
+                <Label Text="Your GDPR Rights"
+                       FontSize="16"
+                       FontAttributes="Bold"
+                       TextColor="#FFD700"
+                       Margin="0,20,0,0"/>
+
+                <!-- Export Data Button -->
+                <Button Text="📤 Export My Data"
+                        Command="{Binding ExportDataCommand}"
+                        Background="#4CAF50"
+                        TextColor="White"
+                        Padding="15"
+                        CornerRadius="8"
+                        FontAttributes="Bold"/>
+
+                <!-- Save Preferences Button -->
+                <Button Text="💾 Save Preferences"
+                        Command="{Binding SaveConsentCommand}"
+                        Background="#2196F3"
+                        TextColor="White"
+                        Padding="15"
+                        CornerRadius="8"
+                        FontAttributes="Bold"/>
+
+                <!-- Delete Account Button -->
+                <Button Text="🗑️ Delete Account"
+                        Command="{Binding ShowDeleteConfirmationDialogCommand}"
+                        Background="#FF6B6B"
+                        TextColor="White"
+                        Padding="15"
+                        CornerRadius="8"
+                        FontAttributes="Bold"/>
+
+                <Label Text="⚠️ Account deletion is permanent and cannot be undone."
+                       FontSize="11"
+                       TextColor="#FF9800"
+                       Margin="0,-5,0,0"/>
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- Delete Confirmation Dialog -->
+        <Frame Grid.Row="0"
+               Grid.RowSpan="2"
+               IsVisible="{Binding ShowDeleteConfirmation}"
+               BackgroundColor="#00000080"
+               CornerRadius="0"
+               HasShadow="False"
+               Padding="0">
+            <VerticalStackLayout Spacing="20" Padding="20" VerticalOptions="Center">
+                <Frame BackgroundColor="#2a2a2a" CornerRadius="15" Padding="20">
+                    <VerticalStackLayout Spacing="15">
+                        <Label Text="⚠️ Delete Account?"
+                               FontSize="18"
+                               FontAttributes="Bold"
+                               TextColor="#FF6B6B"/>
+
+                        <Label Text="This action is permanent and cannot be undone."
+                               FontSize="13"
+                               TextColor="#b0b0b0"/>
+
+                        <Label Text="• Your account and personal data will be deleted&#10;• Order history will be kept for 7 years (tax requirement)&#10;• All sessions will be logged out"
+                               FontSize="12"
+                               TextColor="#b0b0b0"
+                               LineHeight="1.5"/>
+
+                        <Grid ColumnDefinitions="*, *" ColumnSpacing="10">
+                            <Button Grid.Column="0"
+                                    Text="Cancel"
+                                    Command="{Binding CancelDeletionCommand}"
+                                    Background="#424242"
+                                    TextColor="White"
+                                    CornerRadius="8"
+                                    FontAttributes="Bold"/>
+
+                            <Button Grid.Column="1"
+                                    Text="Delete My Account"
+                                    Command="{Binding DeleteAccountCommand}"
+                                    Background="#FF6B6B"
+                                    TextColor="White"
+                                    CornerRadius="8"
+                                    FontAttributes="Bold"/>
+                        </Grid>
+                    </VerticalStackLayout>
+                </Frame>
+            </VerticalStackLayout>
+        </Frame>
+
+    </Grid>
+
 </ContentPage>

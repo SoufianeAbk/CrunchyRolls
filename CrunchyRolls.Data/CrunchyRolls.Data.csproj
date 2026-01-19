@@ -37,8 +37,4 @@
 		<ProjectReference Include="..\CrunchyRolls.Models\CrunchyRolls.Models.csproj" />
 	</ItemGroup>
 
-	<ItemGroup>
-		<Folder Include="Migrations\" />
-	</ItemGroup>
-
 </Project>
