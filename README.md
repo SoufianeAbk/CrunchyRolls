@@ -565,6 +565,3 @@ GDPR Resources:
 - GDPR Tekst: https://eur-lex.europa.eu/eli/reg/2016/679/oj
 - Gegevensbeschermingsautoriteit (BE): https://www.gegevensbeschermingsautoriteit.be/
 - GDPR Checklist: https://gdpr.eu/checklist/
-
-**Made with ❤️ for privacy-conscious sushi lovers**  
-**Licensed under MIT** | **GDPR Compliant** 🔒
