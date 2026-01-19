@@ -2,7 +2,7 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="CrunchyRolls.Views.PrivacyPage"
-             Title="🔒 Privacy & GDPR Settings"
+             Title="🔒 Privacy &amp; GDPR Settings"
              BackgroundColor="#1a1a1a">
 
     <Grid RowDefinitions="*, Auto" Padding="0">
@@ -11,11 +11,12 @@
             <VerticalStackLayout Spacing="20" Padding="20">
 
                 <!-- Header -->
-                <Frame BorderColor="#FFD700" 
-                       BorderWidth="2" 
-                       CornerRadius="10" 
-                       Padding="15"
-                       HasShadow="True">
+                <Border Stroke="#FFD700" 
+                        StrokeThickness="2" 
+                        Padding="15">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="10"/>
+                    </Border.StrokeShape>
                     <VerticalStackLayout Spacing="5">
                         <Label Text="🔐 GDPR Compliance"
                                FontSize="18"
@@ -25,17 +26,19 @@
                                FontSize="13"
                                TextColor="#b0b0b0"/>
                     </VerticalStackLayout>
-                </Frame>
+                </Border>
 
                 <!-- Status Message -->
-                <Frame IsVisible="{Binding StatusMessage, Converter={StaticResource InvertedBoolConverter}}"
-                       BorderColor="#FF6B6B"
-                       Padding="10"
-                       CornerRadius="8">
+                <Border IsVisible="{Binding StatusMessage, Converter={StaticResource InvertedBoolConverter}}"
+                        Stroke="#FF6B6B"
+                        Padding="10">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="8"/>
+                    </Border.StrokeShape>
                     <Label Text="{Binding StatusMessage}"
                            TextColor="#FF6B6B"
                            FontSize="12"/>
-                </Frame>
+                </Border>
 
                 <!-- Loading Indicator -->
                 <ActivityIndicator IsRunning="{Binding IsLoading}"
@@ -50,7 +53,10 @@
                        TextColor="#FFD700"/>
 
                 <!-- Privacy Policy Consent -->
-                <Frame BorderColor="#FFD700" CornerRadius="8" Padding="15" HasShadow="True">
+                <Border Stroke="#FFD700" Padding="15">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="8"/>
+                    </Border.StrokeShape>
                     <Grid ColumnDefinitions="*, Auto" ColumnSpacing="10">
                         <VerticalStackLayout Grid.Column="0">
                             <Label Text="📋 Privacy Policy"
@@ -66,13 +72,16 @@
                                   Color="#FFD700"
                                   VerticalOptions="Center"/>
                     </Grid>
-                </Frame>
+                </Border>
 
                 <!-- Marketing Consent -->
-                <Frame BorderColor="#FFD700" CornerRadius="8" Padding="15" HasShadow="True">
+                <Border Stroke="#FFD700" Padding="15">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="8"/>
+                    </Border.StrokeShape>
                     <Grid ColumnDefinitions="*, Auto" ColumnSpacing="10">
                         <VerticalStackLayout Grid.Column="0">
-                            <Label Text="📧 Marketing & Newsletter"
+                            <Label Text="📧 Marketing &amp; Newsletter"
                                    FontSize="14"
                                    FontAttributes="Bold"
                                    TextColor="White"/>
@@ -85,13 +94,16 @@
                                   Color="#FFD700"
                                   VerticalOptions="Center"/>
                     </Grid>
-                </Frame>
+                </Border>
 
                 <!-- Cookies Consent -->
-                <Frame BorderColor="#FFD700" CornerRadius="8" Padding="15" HasShadow="True">
+                <Border Stroke="#FFD700" Padding="15">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="8"/>
+                    </Border.StrokeShape>
                     <Grid ColumnDefinitions="*, Auto" ColumnSpacing="10">
                         <VerticalStackLayout Grid.Column="0">
-                            <Label Text="🍪 Cookies & Analytics"
+                            <Label Text="🍪 Cookies &amp; Analytics"
                                    FontSize="14"
                                    FontAttributes="Bold"
                                    TextColor="White"/>
@@ -104,13 +116,16 @@
                                   Color="#FFD700"
                                   VerticalOptions="Center"/>
                     </Grid>
-                </Frame>
+                </Border>
 
                 <!-- Terms Consent -->
-                <Frame BorderColor="#FFD700" CornerRadius="8" Padding="15" HasShadow="True">
+                <Border Stroke="#FFD700" Padding="15">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="8"/>
+                    </Border.StrokeShape>
                     <Grid ColumnDefinitions="*, Auto" ColumnSpacing="10">
                         <VerticalStackLayout Grid.Column="0">
-                            <Label Text="⚖️ Terms & Conditions"
+                            <Label Text="⚖️ Terms &amp; Conditions"
                                    FontSize="14"
                                    FontAttributes="Bold"
                                    TextColor="White"/>
@@ -123,7 +138,7 @@
                                   Color="#FFD700"
                                   VerticalOptions="Center"/>
                     </Grid>
-                </Frame>
+                </Border>
 
                 <!-- Data Actions Section -->
                 <Label Text="Your GDPR Rights"
@@ -168,15 +183,16 @@
         </ScrollView>
 
         <!-- Delete Confirmation Dialog -->
-        <Frame Grid.Row="0"
-               Grid.RowSpan="2"
-               IsVisible="{Binding ShowDeleteConfirmation}"
-               BackgroundColor="#00000080"
-               CornerRadius="0"
-               HasShadow="False"
-               Padding="0">
+        <Border Grid.Row="0"
+                Grid.RowSpan="2"
+                IsVisible="{Binding ShowDeleteConfirmation}"
+                BackgroundColor="#00000080"
+                Padding="0">
             <VerticalStackLayout Spacing="20" Padding="20" VerticalOptions="Center">
-                <Frame BackgroundColor="#2a2a2a" CornerRadius="15" Padding="20">
+                <Border BackgroundColor="#2a2a2a" Padding="20">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="15"/>
+                    </Border.StrokeShape>
                     <VerticalStackLayout Spacing="15">
                         <Label Text="⚠️ Delete Account?"
                                FontSize="18"
@@ -187,10 +203,15 @@
                                FontSize="13"
                                TextColor="#b0b0b0"/>
 
-                        <Label Text="• Your account and personal data will be deleted&#10;• Order history will be kept for 7 years (tax requirement)&#10;• All sessions will be logged out"
-                               FontSize="12"
+                        <Label FontSize="12"
                                TextColor="#b0b0b0"
-                               LineHeight="1.5"/>
+                               LineHeight="1.5">
+                            <Label.Text>
+                                • Your account and personal data will be deleted
+• Order history will be kept for 7 years (tax requirement)
+• All sessions will be logged out
+                            </Label.Text>
+                        </Label>
 
                         <Grid ColumnDefinitions="*, *" ColumnSpacing="10">
                             <Button Grid.Column="0"
@@ -210,9 +231,9 @@
                                     FontAttributes="Bold"/>
                         </Grid>
                     </VerticalStackLayout>
-                </Frame>
+                </Border>
             </VerticalStackLayout>
-        </Frame>
+        </Border>
 
     </Grid>
 

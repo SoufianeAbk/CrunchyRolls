@@ -7,10 +7,15 @@ public partial class ConsentPage : ContentPage
 {
     private readonly GdprService _gdprService;
 
-    public ConsentPage()
+    /// <summary>
+    /// ConsentPage constructor met Dependency Injection
+    /// GdprService wordt geïnjecteerd door DI container
+    /// </summary>
+    public ConsentPage(GdprService gdprService)
     {
         InitializeComponent();
-        _gdprService = new GdprService(new ApiService());
+        _gdprService = gdprService;
+        Debug.WriteLine("✅ ConsentPage initialized");
     }
 
     private async void OnAcceptClicked(object sender, EventArgs e)

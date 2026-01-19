@@ -26,7 +26,7 @@ namespace CrunchyRolls
             builder.Services.AddSingleton<TokenService>();
             builder.Services.AddSingleton<SecureStorageService>();
             builder.Services.AddSingleton<IAuthService, AuthService>();
-
+            builder.Services.AddSingleton<GdprService>();
             builder.Services.AddSingleton<HybridProductService>();
             builder.Services.AddSingleton<HybridOrderService>();
 
@@ -43,6 +43,7 @@ namespace CrunchyRolls
             builder.Services.AddSingleton<OrderPage>();
             builder.Services.AddSingleton<OrderHistoryPage>();
             builder.Services.AddSingleton<ProductDetailPage>();
+            builder.Services.AddTransient<ConsentPage>();
 
             var mauiApp = builder.Build();
 

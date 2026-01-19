@@ -24,14 +24,17 @@
             <VerticalStackLayout Spacing="12">
 
                 <!-- Privacy Policy -->
-                <Frame BorderColor="#FFD700" CornerRadius="8" Padding="15" HasShadow="True">
+                <Border Stroke="#FFD700" Padding="15">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="8"/>
+                    </Border.StrokeShape>
                     <Grid ColumnDefinitions="*, Auto" ColumnSpacing="10">
                         <VerticalStackLayout Grid.Column="0">
                             <Label Text="📋 Privacy Policy"
                                    FontSize="14"
                                    FontAttributes="Bold"
                                    TextColor="White"/>
-                            <Label Text="Data collection & processing consent (Required)"
+                            <Label Text="Data collection &amp; processing consent (Required)"
                                    FontSize="11"
                                    TextColor="#b0b0b0"/>
                         </VerticalStackLayout>
@@ -40,13 +43,16 @@
                                   Color="#FFD700"
                                   VerticalOptions="Center"/>
                     </Grid>
-                </Frame>
+                </Border>
 
                 <!-- Terms & Conditions -->
-                <Frame BorderColor="#FFD700" CornerRadius="8" Padding="15" HasShadow="True">
+                <Border Stroke="#FFD700" Padding="15">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="8"/>
+                    </Border.StrokeShape>
                     <Grid ColumnDefinitions="*, Auto" ColumnSpacing="10">
                         <VerticalStackLayout Grid.Column="0">
-                            <Label Text="⚖️ Terms & Conditions"
+                            <Label Text="⚖️ Terms &amp; Conditions"
                                    FontSize="14"
                                    FontAttributes="Bold"
                                    TextColor="White"/>
@@ -59,10 +65,13 @@
                                   Color="#FFD700"
                                   VerticalOptions="Center"/>
                     </Grid>
-                </Frame>
+                </Border>
 
                 <!-- Data Processing -->
-                <Frame BorderColor="#FFD700" CornerRadius="8" Padding="15" HasShadow="True">
+                <Border Stroke="#FFD700" Padding="15">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="8"/>
+                    </Border.StrokeShape>
                     <Grid ColumnDefinitions="*, Auto" ColumnSpacing="10">
                         <VerticalStackLayout Grid.Column="0">
                             <Label Text="📊 Data Processing"
@@ -78,10 +87,13 @@
                                   Color="#FFD700"
                                   VerticalOptions="Center"/>
                     </Grid>
-                </Frame>
+                </Border>
 
                 <!-- Optional: Marketing -->
-                <Frame BorderColor="#FFD700" CornerRadius="8" Padding="15" HasShadow="True">
+                <Border Stroke="#FFD700" Padding="15">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="8"/>
+                    </Border.StrokeShape>
                     <Grid ColumnDefinitions="*, Auto" ColumnSpacing="10">
                         <VerticalStackLayout Grid.Column="0">
                             <Label Text="📧 Marketing (Optional)"
@@ -97,10 +109,13 @@
                                   Color="#FFD700"
                                   VerticalOptions="Center"/>
                     </Grid>
-                </Frame>
+                </Border>
 
                 <!-- Optional: Cookies -->
-                <Frame BorderColor="#FFD700" CornerRadius="8" Padding="15" HasShadow="True">
+                <Border Stroke="#FFD700" Padding="15">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="8"/>
+                    </Border.StrokeShape>
                     <Grid ColumnDefinitions="*, Auto" ColumnSpacing="10">
                         <VerticalStackLayout Grid.Column="0">
                             <Label Text="🍪 Cookies (Optional)"
@@ -116,7 +131,7 @@
                                   Color="#FFD700"
                                   VerticalOptions="Center"/>
                     </Grid>
-                </Frame>
+                </Border>
 
             </VerticalStackLayout>
         </ScrollView>
@@ -124,7 +139,7 @@
         <!-- Actions -->
         <VerticalStackLayout Spacing="10" VerticalOptions="End">
 
-            <Button Text="✅ Accept & Continue"
+            <Button Text="✅ Accept &amp; Continue"
                     x:Name="AcceptButton"
                     Background="#4CAF50"
                     TextColor="White"
