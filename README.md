@@ -1,16 +1,17 @@
 CrunchyRolls 🍣
-Een moderne, cross-platform sushi delivery applicatie gebouwd met .NET 9.0 MAUI, ASP.NET Core Web API, en offline-first architectuur met JWT authenticatie.
+Een moderne, cross-platform sushi delivery applicatie gebouwd met .NET 9.0 MAUI, ASP.NET Core Web API, en offline-first architectuur met JWT authenticatie en volledige GDPR-compliance.
 
 📋 Inhoudsopgave
 
-- [Overzicht](-overzicht)
-- [Architectuur](-architectuur)
-- [Installatie](-installatie)
-- [Functionaliteiten](-functionaliteiten)
-- [API Endpoints](-api-endpoints)
-- [Database Schema](-database-schema)
-- [Authenticatie](-authenticatie)
-- [Configuratie](-configuratie)
+- [Overzicht](#-overzicht)
+- [Architectuur](#-architectuur)
+- [Installatie](#-installatie)
+- [Functionaliteiten](#-functionaliteiten)
+- [GDPR Compliance](#-gdpr-compliance)
+- [API Endpoints](#-api-endpoints)
+- [Database Schema](#-database-schema)
+- [Authenticatie](#-authenticatie)
+- [Configuratie](#-configuratie)
 
 🎯 Overzicht
 
@@ -20,22 +21,22 @@ CrunchyRolls is een volledige e-commerce sushi delivery app met:
 ✅ ASP.NET Core REST API met Swagger/OpenAPI  
 ✅ SQLite Database met Entity Framework Core  
 ✅ JWT Authenticatie met BCrypt password hashing  
+✅ GDPR-Compliance met Privacy & Consent Management  
 ✅ Offline-First Architectuur met lokale cache  
 ✅ Clean Architecture (5 gescheiden projecten)  
 ✅ MVVM Pattern met CommunityToolkit.Mvvm  
 ✅ Repository Pattern voor data access  
 ✅ 25 mock producten in 5 categorieën  
 
-
-
-🏗️ Architectuur
-
-Project Structuur
+Architectuur & Project Structuur
+```
 CrunchyRolls.sln
 │
 ├── 1️⃣ CrunchyRolls/                          🎨 MAUI Frontend
 │   ├── Views/
 │   │   ├── LoginPage.xaml                    JWT authenticatie
+│   │   ├── ConsentPage.xaml                  ⭐ GDPR consent screen
+│   │   ├── PrivacyPage.xaml                  ⭐ Privacy & gegevensbeheer
 │   │   ├── ProductsPage.xaml                 Product browsing met category filter
 │   │   ├── ProductDetailPage.xaml            Product details
 │   │   ├── OrderPage.xaml                    Shopping cart & checkout
@@ -50,9 +51,12 @@ CrunchyRolls.sln
 │   │   ├── AuthService.cs                    Login/logout management
 │   │   ├── TokenService.cs                   JWT token validation
 │   │   ├── SecureStorageService.cs           Secure token storage
+│   │   ├── ConsentService.cs                 ⭐ GDPR consent tracking
 │   │   ├── HybridProductService.cs           Offline-first products
 │   │   └── HybridOrderService.cs             Offline-first orders
 │   ├── ViewModels/ (MVVM met CommunityToolkit)
+│   │   ├── ConsentViewModel.cs               ⭐ Consent management
+│   │   └── PrivacyViewModel.cs               ⭐ Privacy dashboard
 │   ├── Data/
 │   │   ├── LocalDbContext.cs                 SQLite voor MAUI
 │   │   └── Repositories/ (Local cache repos)
@@ -62,6 +66,8 @@ CrunchyRolls.sln
 ├── 3️⃣ CrunchyRolls.Models/                   📊 Shared Data Models
 │   ├── Entities/
 │   │   ├── User.cs                           User met BCrypt hash
+│   │   ├── UserConsent.cs                    ⭐ GDPR consent records
+│   │   ├── ConsentType.cs                    ⭐ Consent categorieën
 │   │   ├── Category.cs
 │   │   ├── Product.cs
 │   │   ├── Order.cs
@@ -77,6 +83,8 @@ CrunchyRolls.sln
 │   ├── Repositories/
 │   │   ├── IUserRepository.cs
 │   │   ├── UserRepository.cs                 BCrypt password handling
+│   │   ├── IConsentRepository.cs             ⭐ GDPR consent data access
+│   │   ├── ConsentRepository.cs              ⭐ Consent CRUD operations
 │   │   ├── ICategoryRepository.cs
 │   │   ├── CategoryRepository.cs
 │   │   ├── IProductRepository.cs
@@ -84,136 +92,152 @@ CrunchyRolls.sln
 │   │   ├── IOrderRepository.cs
 │   │   └── OrderRepository.cs
 │   ├── Seeders/
-│   │   └── DataSeeder.cs                     4 users + 25 products
+│   │   ├── DataSeeder.cs                     4 users + 25 products
+│   │   └── GdprSeeder.cs                     ⭐ GDPR consent types
 │   ├── Migrations/                           EF Core migrations
 │   └── Extensions/ (DI configuration)
 │
 └── 5️⃣ CrunchyRolls.Api/                      🌐 ASP.NET Core REST API
     ├── Controllers/
     │   ├── AuthController.cs                 JWT login/refresh endpoints
+    │   ├── ConsentController.cs              ⭐ GDPR consent endpoints
     │   ├── CategoriesController.cs           Category CRUD
     │   ├── ProductsController.cs             Product CRUD
     │   └── OrdersController.cs               Order CRUD
     ├── Program.cs (API configuration, CORS, Swagger)
     ├── appsettings.json (JWT secrets, connection string)
     └── CrunchyRolls.db (SQLite database file)
+```
 
-Project Dependencies
+GDPR Compliance & Functionaliteiten
 
-CrunchyRolls (MAUI)
-    ↓ references
-CrunchyRolls.Core (Services, ViewModels, Local Repos)
-    ↓ references
-CrunchyRolls.Models (Shared DTOs, Entities, Enums)
+Consent Management
+- Granulaire toestemming: 5 consent types (Essentieel, Functioneel, Analytics, Marketing, Profiling)
+- Opt-in mechanisme: Gebruikers moeten actief toestemming geven
+- Consent tracking: Alle wijzigingen worden gelogd met timestamp
+- Versioning: ConsentVersion tracking voor juridische compliance
+- Withdrawal: Gebruikers kunnen toestemming altijd intrekken
 
-CrunchyRolls.Api (ASP.NET Core Web API)
-    ↓ references
-CrunchyRolls.Data (EF Core + Repositories)
-    ↓ references
-CrunchyRolls.Models
+Privacy Dashboard (PrivacyPage)
+- Inzage recht (Art. 15 GDPR): Bekijk alle opgeslagen persoonlijke data
+- Rectificatie recht (Art. 16 GDPR): Wijzig persoonlijke gegevens
+- Wissen recht (Art. 17 GDPR): Verwijder account en alle data
+- Data portability (Art. 20 GDPR): Export data in JSON formaat
+- Consent overzicht: Huidige toestemmingen per categorie
+- Dataverwerking transparantie: Welke data wordt verzameld en waarom
 
-Data Flow
+Juridische Basis
+- Legitieme belangen: Essentiële cookies (Art. 6(1)(f) GDPR)
+- Toestemming: Niet-essentiële tracking (Art. 6(1)(a) GDPR)
+- Contractuele noodzaak: Order processing (Art. 6(1)(b) GDPR)
 
-┌─────────────────────────┐
-│   MAUI Frontend         │  Views (XAML) ←→ ViewModels (MVVM)
-│   (CrunchyRolls)        │       ↓
-└────────────┬────────────┘   Commands
-             │                   ↓
-             └──→ AuthService ──→ JWT Login
-             │    HybridServices  ↓
-             │         ↓       ApiService (HTTP + JWT)
-             │    Local SQLite     ↓
-             │    (Cache)      HTTP/JSON
-             │                     ↓
-┌─────────────────────────┐
-│   ASP.NET Core API      │  Controllers → Repositories
-│  (CrunchyRolls.Api)     │       ↓
-└────────────┬────────────┘   LINQ to SQL
-             │                   ↓
-             └──→ EF Core ────→ SQLite Database
-                  (Data)       (CrunchyRolls.db)
+Consent Types
 
-🛠️ Technische Stack
+| Type | Beschrijving | Verplicht | Juridische Basis |
+|------|--------------|-----------|------------------|
+| Essential | Login, sessies, winkelwagen | ✅ Ja | Legitiem belang |
+| Functional | Taalvoorkeuren, UI instellingen | ❌ Nee | Toestemming |
+| Analytics | Gebruiksstatistieken, performance | ❌ Nee | Toestemming |
+| Marketing | Aanbiedingen, nieuwsbrieven | ❌ Nee | Toestemming |
+| Profiling | Gepersonaliseerde aanbevelingen | ❌ Nee | Toestemming |
 
-| Laag | Technologie | Details |
-|------|-------------|---------|
-| Frontend | .NET MAUI 9.0 | C# 12, XAML, Cross-platform |
-| UI Pattern | MVVM | CommunityToolkit.Mvvm, ObservableProperty, RelayCommand |
-| Business Logic | Services & ViewModels | Hybrid offline-first services |
-| Authentication | JWT Tokens | HS256, BCrypt password hashing |
-| Data Models | C# Classes | Entities, DTOs, Enums (Shared) |
-| Backend API | ASP.NET Core 9.0 | REST JSON, Swagger/OpenAPI, CORS |
-| Database | SQLite | Entity Framework Core 9.0, Code-First |
-| Local Storage | SQLite (MAUI) | Offline cache met sync |
-| HTTP Client | HttpClient | Async/await, JWT authorization header |
-| Architecture | Clean Architecture | Repository Pattern, DI, Separation of Concerns |
+User Flow
 
-NuGet Packages
+```
+1. Registratie/Login
+   └─> ConsentPage (eerste keer)
+       ├─> Essentieel: Auto-enabled (disabled toggle)
+       ├─> Functioneel/Analytics/Marketing/Profiling: Opt-in
+       └─> "Opslaan" → ProductsPage
 
-API Project:
-- Microsoft.EntityFrameworkCore.Sqlite
-- Microsoft.AspNetCore.Authentication.JwtBearer
-- BCrypt.Net-Next (password hashing)
-- Swashbuckle.AspNetCore (Swagger)
+2. Privacy Beheer (Settings)
+   └─> PrivacyPage
+       ├─> Tab 1: Mijn Gegevens (view/edit)
+       ├─> Tab 2: Toestemmingen (wijzig consent)
+       ├─> Tab 3: Dataverwerking (transparantie)
+       └─> Acties: Export Data / Verwijder Account
+```
 
-MAUI Project:
-- CommunityToolkit.Mvvm
-- Microsoft.EntityFrameworkCore.Sqlite
-- System.IdentityModel.Tokens.Jwt
+Database Schema (GDPR)
 
-📦 Installatie
+```
+┌─────────────┐         ┌──────────────┐
+│    Users    │────────<│ UserConsents │
+│ Id          │   1:N   │ Id           │
+│ Email       │         │ UserId       │ (FK)
+│ FirstName   │         │ ConsentTypeId│ (FK)
+│ LastName    │         │ IsGranted    │
+│ CreatedDate │         │ GrantedDate  │
+└─────────────┘         │ RevokedDate  │
+                        │ ConsentVersion│
+                        │ IpAddress    │
+                        └──────┬───────┘
+                               │
+                        ┌──────▼───────┐
+                        │ ConsentTypes │
+                        │ Id           │
+                        │ Name         │
+                        │ Description  │
+                        │ IsRequired   │
+                        │ Category     │
+                        └──────────────┘
+```
 
-Vereisten
+API Endpoints (GDPR)
 
-- .NET 9.0 SDK - https://dotnet.microsoft.com/download
-- Visual Studio 2022 v17.14+ of VS Code
-- Platform SDKs: Xcode (iOS), Android SDK (Android)
+```http
+# Consent Management
+GET     /api/consent/user/{userId}              Alle consents van gebruiker
+GET     /api/consent/types                      Alle consent types
+POST    /api/consent                            Grant/revoke consent
+PUT     /api/consent/{id}                       Update consent status
+GET     /api/consent/user/{userId}/active       Alleen actieve consents
 
-Setup (4 stappen)
+# Privacy & Data Rights
+GET     /api/users/{id}/data                    Export persoonlijke data (GDPR Art. 20)
+DELETE  /api/users/{id}                         Verwijder account (GDPR Art. 17)
+PUT     /api/users/{id}                         Wijzig persoonlijke data (GDPR Art. 16)
+GET     /api/users/{id}/consents                Consent geschiedenis
+```
 
-1. Clone repository
-bash
-git clone https://github.com/SoufianeAbk/CrunchyRolls
-cd CrunchyRolls
+Consent Request Body:
+```json
+{
+  "userId": 1,
+  "consentTypeId": 3,
+  "isGranted": true,
+  "ipAddress": "192.168.1.100",
+  "consentVersion": "1.0"
+}
+```
 
-2. Restore dependencies
-bash
-dotnet restore
+Consent Tracking Voorbeeld
 
-3. Start API (database wordt automatisch aangemaakt)
-bash
-cd CrunchyRolls.Api
-dotnet run
-API draait op: http://localhost:5000
-Swagger UI: http://localhost:5000/swagger
+```json
+{
+  "userId": 1,
+  "consents": [
+    {
+      "consentType": "Essential",
+      "isGranted": true,
+      "grantedDate": "2025-01-19T10:00:00Z",
+      "revokedDate": null,
+      "consentVersion": "1.0",
+      "ipAddress": "192.168.1.100"
+    },
+    {
+      "consentType": "Marketing",
+      "isGranted": false,
+      "grantedDate": "2025-01-19T10:00:00Z",
+      "revokedDate": "2025-01-19T14:30:00Z",
+      "consentVersion": "1.0",
+      "ipAddress": "192.168.1.100"
+    }
+  ]
+}
+```
 
-Database `CrunchyRolls.db` wordt automatisch aangemaakt met seeded data.
-
-4. Start MAUI Frontend (nieuw terminal venster)
-bash
-cd CrunchyRolls
-
-Windows
-dotnet run -f net9.0-windows10.0.19041.0
-
-Android (requires Android SDK)
-dotnet run -f net9.0-android
-
-iOS (macOS only, requires Xcode)
-dotnet run -f net9.0-ios
-
-macCatalyst (macOS only)
-dotnet run -f net9.0-maccatalyst
-
-5. Login met test account
-Email: test@example.com
-Password: Password123
-
-✅ Klaar! App connecteert automatisch met API en cached data lokaal.
-
-🎯 Functionaliteiten
-
-🔐 Authenticatie & Beveiliging
+Functionaliteiten, Authenticatie & Beveiliging
 
 - JWT Token Authenticatie met HS256 algorithm
 - BCrypt Password Hashing (work factor 12)
@@ -221,7 +245,7 @@ Password: Password123
 - Automatic Token Refresh (5 minuten voor expiry)
 - Session Management met auto-logout bij token expiry
 
-🛍️ Producten & Categorieën
+Producten & Categorieën
 
 - 25 mock producten in 5 categorieën (Sushi, Ramen, Dranken, Desserts, Voorgerechten)
 - Category filtering met horizontal scrolling chips
@@ -230,7 +254,7 @@ Password: Password123
 - Product detail pagina met afbeelding, prijs, beschrijving
 - Offline-first: Data cached lokaal in SQLite
 
-🛒 Winkelwagen
+Winkelwagen
 
 - Add/Remove items met quantity control
 - Real-time totaal berekening (quantity × unit price)
@@ -238,7 +262,7 @@ Password: Password123
 - Clear cart functionaliteit
 - Stock validation voor checkout
 
-📦 Order Management
+Order Management
 
 - Bestellingen plaatsen met validatie (naam, email, adres)
 - Unique order IDs (auto-increment)
@@ -246,7 +270,7 @@ Password: Password123
 - Order cancellation (alleen niet-Delivered orders)
 - Email notificaties (toekomstige feature)
 
-📊 Order History
+Order History
 
 - Alle bestellingen gesorteerd op datum (nieuwste eerst)
 - Order statistieken: Totaal bestellingen & totaal besteed
@@ -255,7 +279,7 @@ Password: Password123
 - Pull-to-refresh voor data sync
 - Kleurgecodeerde status badges (Pending=Orange, Delivered=Green, etc.)
 
-🎨 UI/UX Features
+UI/UX Features
 
 - Dark theme met gouden accenten (#FFD700)
 - Responsive design (2-column grid op portrait)
@@ -266,7 +290,7 @@ Password: Password123
 - Toast/Alert dialogen voor user feedback
 - Smooth animations (MAUI native)
 
-🔄 Offline-First Architectuur
+Offline-First Architectuur
 
 - HybridProductService: API → Local Cache → Empty
 - HybridOrderService: API → Local Cache → Empty
@@ -274,53 +298,42 @@ Password: Password123
 - Manual refresh via pull-to-refresh
 - Works offline met cached data
 
-🌐 API Endpoints
+API Endpoints
 
-Base URL: http://localhost:5000/api (Development)  
-Swagger: http://localhost:5000/swagger
+Base URL: `http://localhost:5000/api` (Development)  
+Swagger: `http://localhost:5000/swagger`
 
 Authentication
 
-http
+```http
 POST   /api/auth/login               Login met email/password → JWT token
 POST   /api/auth/refresh             Refresh expired token
+```
 
+Consent (GDPR)
 
-Login Request:
-json
-{
-  "email": "test@example.com",
-  "password": "Password123"
-}
-
-Login Response:
-json
-{
-  "success": true,
-  "message": "Inloggen succesvol",
-  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "user": {
-    "id": 1,
-    "email": "test@example.com",
-    "firstName": "Test",
-    "lastName": "User",
-    "role": "Customer"
-  }
-}
+```http
+GET     /api/consent/types                      Alle consent types
+GET     /api/consent/user/{userId}              Alle consents van gebruiker
+GET     /api/consent/user/{userId}/active       Actieve consents
+POST    /api/consent                            Grant/revoke consent
+PUT     /api/consent/{id}                       Update consent
+```
 
 Categories
 
-http
+```http
 GET     /api/categories                       Alle categorieën
 GET     /api/categories/{id}                  Categorie met producten
 GET     /api/categories/search?name=sushi     Zoeken op naam
 POST    /api/categories                       Create (body: Category)
 PUT     /api/categories/{id}                  Update (body: Category)
 DELETE  /api/categories/{id}                  Delete (cascade naar products)
+```
 
 Products
 
-http
+```http
 GET     /api/products                         Alle producten
 GET     /api/products/{id}                    Product detail met category
 GET     /api/products/category/{categoryId}   Filter op categorie
@@ -329,10 +342,11 @@ GET     /api/products/instock                 Alleen producten op voorraad
 POST    /api/products                         Create (body: Product)
 PUT     /api/products/{id}                    Update (body: Product)
 DELETE  /api/products/{id}                    Delete (OrderItems.ProductId → NULL)
+```
 
 Orders
 
-http
+```http
 GET     /api/orders                           Alle orders
 GET     /api/orders/{id}                      Order met items en products
 GET     /api/orders/customer/{email}          Orders per klant email
@@ -342,41 +356,31 @@ GET     /api/orders/revenue                   Totale omzet (delivered orders)
 POST    /api/orders                           Create (body: Order met OrderItems)
 PUT     /api/orders/{id}/status               Update status (body: { status: 1 })
 DELETE  /api/orders/{id}                      Delete (cascade naar OrderItems)
+```
 
-Create Order Request:
-json
-{
-  "customerName": "John Doe",
-  "customerEmail": "john@example.com",
-  "deliveryAddress": "123 Main Street, Brussels",
-  "status": 0,
-  "orderDate": "2025-01-05T12:00:00Z",
-  "orderItems": [
-{
-"productId": 1,
-"quantity": 2,
-"unitPrice": 8.50
-}
-]
-}
-
-💾 Database Schema
-
-ERD (Entity Relationship Diagram)
+Database Schema, ERD (Entity Relationship Diagram)
 
 ```
-┌─────────────┐
-│    Users    │
-│ Id          │
-│ Email       │ (Unique)
-│ PasswordHash│ (BCrypt)
-│ FirstName   │
-│ LastName    │
-│ Role        │
-│ IsActive    │
-│ CreatedDate │
-│ LastLogin   │
-└─────────────┘
+┌─────────────┐         ┌──────────────┐
+│    Users    │────────<│ UserConsents │ ⭐ GDPR
+│ Id          │   1:N   │ Id           │
+│ Email       │         │ UserId       │ (FK)
+│ PasswordHash│         │ ConsentTypeId│ (FK)
+│ FirstName   │         │ IsGranted    │
+│ LastName    │         │ GrantedDate  │
+│ Role        │         │ RevokedDate  │
+│ IsActive    │         │ ConsentVersion
+│ CreatedDate │         │ IpAddress    │
+│ LastLogin   │         └──────┬───────┘
+└─────────────┘                │
+                        ┌──────▼───────┐
+                        │ ConsentTypes │ ⭐ GDPR
+                        │ Id           │
+                        │ Name         │
+                        │ Description  │
+                        │ IsRequired   │
+                        │ Category     │
+                        └──────────────┘
 
 ┌─────────────┐         ┌──────────────┐
 │ Categories  │────────<│   Products   │
@@ -403,123 +407,71 @@ ERD (Entity Relationship Diagram)
 └─────────────┘
 ```
 
-Table Details
+ConsentTypes (Seeded Data)
 
-Users (Authenticatie)
-- Id (PK, int, auto-increment)
-- Email (string, unique index, max 300)
-- PasswordHash (string, BCrypt, max 255)
-- FirstName, LastName (string, max 100)
-- Role (string, max 50, default: "Customer")
-- IsActive (bool, default: true)
-- CreatedDate (DateTime, default: UtcNow)
-- LastLogin (DateTime?, nullable)
+| Id | Name | Description | IsRequired | Category |
+|----|------|-------------|------------|----------|
+| 1 | Essential | Noodzakelijke cookies voor basisfunctionaliteit | ✅ true | Security |
+| 2 | Functional | Voorkeuren en personalisatie | ❌ false | Preferences |
+| 3 | Analytics | Gebruiksstatistieken en performance | ❌ false | Analytics |
+| 4 | Marketing | Marketing en communicatie | ❌ false | Marketing |
+| 5 | Profiling | Gedragsanalyse en profielen | ❌ false | Personalization |
 
-Categories → Products (1:N, Cascade Delete)
-- Id (PK), Name (max 100), Description (max 500)
+Vereisten
 
-Products
-- Id (PK), Name (max 200), Description (max 1000)
-- Price (decimal 18,2), CategoryId (FK → Categories)
-- StockQuantity (int), ImageUrl (max 500)
-- Computed: IsInStock → StockQuantity > 0
+- .NET 9.0 SDK - https://dotnet.microsoft.com/download
+- Visual Studio 2022 v17.14+ of VS Code
+- Platform SDKs: Xcode (iOS), Android SDK (Android)
 
-Orders → OrderItems (1:N, Cascade Delete)
-- Id (PK), OrderDate (DateTime, indexed)
-- CustomerName (max 200), CustomerEmail (max 300)
-- DeliveryAddress (max 500)
-- Status (OrderStatus enum → int, indexed)
-- Computed: TotalAmount → Sum of OrderItems
+### Setup (4 stappen)
 
-OrderItems
-- Id (PK), OrderId (FK → Orders, cascade)
-- ProductId (FK → Products, set null on delete)
-- Quantity (int), UnitPrice (decimal 18,2)
+1. Clone repository
+```bash
+git clone https://github.com/SoufianeAbk/CrunchyRolls
+cd CrunchyRolls
+```
 
-🔐 Authenticatie
+2. Restore dependencies
+```bash
+dotnet restore
+```
 
-JWT Token Flow
-┌──────────────┐                    ┌──────────────┐
-│  MAUI App    │                    │   Web API    │
-│              │  1. POST /login    │              │
-│  LoginPage   │───────────────────>│ AuthController
-│              │ {email, password}  │              │
-│              │                    │              │
-│              │  2. Verify BCrypt  │  UserRepo    │
-│              │<───────────────────│              │
-│              │                    │              │
-│              │  3. Generate JWT   │              │
-│              │<───────────────────│              │
-│ AuthService  │ {token, user}      │              │
-│              │                    │              │
-│              │  4. Store Secure   │              │
-│SecureStorage │                    │              │
-│              │                    │              │
-│              │  5. All API Calls  │              │
-│  ApiService  │───────────────────>│              │
-│              │ Authorization:     │              │
-│              │ Bearer <token>     │              │
-└──────────────┘                    └──────────────┘
+3. Start API (database wordt automatisch aangemaakt)
+```bash
+cd CrunchyRolls.Api
+dotnet run
+# API draait op: http://localhost:5000
+# Swagger UI: http://localhost:5000/swagger
+```
 
-Token Details
+Database `CrunchyRolls.db` wordt automatisch aangemaakt met seeded data (inclusief GDPR consent types).
 
-JWT Claims:
-json
-{
-  "email": "test@example.com",
-  "given_name": "Test",
-  "family_name": "User",
-  "role": "Customer",
-  "sub": "1",
-  "jti": "unique-guid",
-  "iss": "CrunchyRolls",
-  "aud": "CrunchyRollsApp",
-  "exp": 1704123456
-}
+4. Start MAUI Frontend (nieuw terminal venster)
+```bash
+cd CrunchyRolls
 
-Token Expiry: 60 minuten (configurable)  
-Auto-Refresh: 5 minuten voor expiry  
-Algorithm: HS256 (HMAC SHA256)  
-Storage: iOS Keychain / Android EncryptedSharedPreferences
+# Windows
+dotnet run -f net9.0-windows10.0.19041.0
 
-⚙️ Configuratie
+# Android (requires Android SDK)
+dotnet run -f net9.0-android
 
-API Configuration (appsettings.json)
-json
-{
-  "ConnectionStrings": {
-    "DefaultConnection": "Data Source=CrunchyRolls.db"
-  },
-  "Jwt": {
-    "Secret": "VeryLongSecretKeyForJWTTokenGenerationThatIsAtLeast32CharactersLong!@#",
-    "Issuer": "CrunchyRolls",
-    "Audience": "CrunchyRollsApp",
-    "ExpirationMinutes": 60
-  },
-  "Logging": {
-    "LogLevel": {
-      "Default": "Information",
-      "Microsoft.AspNetCore": "Warning"
-    }
-  }
-}
+# iOS (macOS only, requires Xcode)
+dotnet run -f net9.0-ios
 
-MAUI API Connection (ApiService.cs)
+# macCatalyst (macOS only)
+dotnet run -f net9.0-maccatalyst
+```
 
-csharp
-// Development
-private const string BaseUrl = "http://localhost:5000/api";
+5. Login met test account
+```
+Email: test@example.com
+Password: Password123
+```
 
-// Production
-private const string BaseUrl = "https://your-api-domain.com/api";
+Klaar! App connecteert automatisch met API, toont ConsentPage bij eerste gebruik, en cached data lokaal.
 
-MAUI Local Database (LocalDbContext.cs)
-
-csharp
-// SQLite database path
-var dbPath = Path.Combine(FileSystem.AppDataDirectory, "CrunchyRollsLocal.db");
-
-📝 Seeded Test Data
+Seeded Test Data
 
 Users (4 accounts)
 
@@ -529,6 +481,14 @@ Users (4 accounts)
 | admin@example.com | AdminPassword123 | Admin | Active |
 | john@example.com | JohnPassword123 | Customer | Active |
 | jane@example.com | JanePassword123 | Customer | Active |
+
+Consent Types (5 GDPR categorieën)
+
+1. Essential - Noodzakelijke cookies (verplicht)
+2. Functional - Voorkeuren en instellingen
+3. Analytics - Gebruiksstatistieken
+4. Marketing - Aanbiedingen en communicatie
+5. Profiling - Gedragsanalyse
 
 Categories (5)
 
@@ -575,139 +535,18 @@ Voorgerechten:
 - Tempura Mix (€8.50, **out of stock**)
 - Yakitori (€7.50, stock: 18)
 
-🚀 Quick Start Commands
+Roadmap
 
-bash
-Complete setup
-git clone https://github.com/SoufianeAbk/CrunchyRolls
-cd CrunchyRolls
-dotnet restore
+GDPR & Privacy:
+- [x] v1.0: Consent management systeem
+- [x] v1.0: Privacy dashboard met data export
+- [x] v1.0: Right to erasure (account deletion)
+- [ ] v1.1: Cookie banner compliance
+- [ ] v1.2: Data retention policies (auto-delete old data)
+- [ ] v1.3: Audit log voor GDPR acties
+- [ ] v1.4: Privacy policy versioning
 
-Start API
-cd CrunchyRolls.Api
-dotnet run
-API: http://localhost:5000
-Swagger: http://localhost:5000/swagger
-
-Start MAUI (nieuw terminal)
-cd CrunchyRolls
-dotnet run -f net9.0-windows10.0.19041.0
-
-Database migrations (indien nodig)
-cd CrunchyRolls.Api
-dotnet ef database update
-
-Clean build
-dotnet clean && dotnet restore && dotnet build
-
-🔄 Offline-First Features
-
-Hybrid Services
-
-HybridProductService:
-1. Probeer API eerst (fresh data)
-2. Cache result in local SQLite
-3. Fallback naar cache bij failure
-4. Auto-sync elke 60 minuten
-
-HybridOrderService:
-1. API voor create/update/delete
-2. Local cache voor read operations
-3. Optimistic UI updates
-4. Background sync queue
-
-Local SQLite Schema
-SQL
-MAUI Local Database (CrunchyRollsLocal.db)
-CREATE TABLE LocalProducts (
-    Id INTEGER PRIMARY KEY,
-    Name TEXT NOT NULL,
-    Description TEXT,
-    Price REAL NOT NULL,
-    CategoryId INTEGER,
-    StockQuantity INTEGER,
-    ImageUrl TEXT,
-    LastSynced TEXT
-);
-
-CREATE TABLE LocalOrders (
-    Id INTEGER PRIMARY KEY,
-    OrderDate TEXT,
-    CustomerName TEXT,
-    CustomerEmail TEXT,
-    Status INTEGER,
-    TotalAmount REAL,
-    SyncStatus INTEGER  -- 0=Synced, 1=Pending, 2=Failed
-);
-
-🎓 Development Notes
-
-MVVM Pattern with CommunityToolkit
-
-csharp
-// ViewModel
-public partial class ProductsViewModel : BaseViewModel
-{
-    [ObservableProperty]
-    private ObservableCollection<Product> products = new();
-    
-    [ObservableProperty]
-    private string searchText = string.Empty;
-    
-    [RelayCommand]
-    private async Task LoadData()
-    {
-        var data = await _productService.GetProductsAsync();
-        Products = new ObservableCollection<Product>(data);
-    }
-    
-    partial void OnSearchTextChanged(string value)
-    {
-        FilterProducts();
-    }
-}
-
-xml
-<!-- XAML View -->
-<ContentPage x:DataType="viewmodels:ProductsViewModel">
-    <SearchBar Text="{Binding SearchText}"/>
-    <CollectionView ItemsSource="{Binding Products}"/>
-    <Button Command="{Binding LoadDataCommand}"/>
-</ContentPage>
-
-Error Handling Strategy
-csharp
-// All API calls return default on error (no crashes)
-public async Task<T?> GetAsync<T>(string endpoint)
-{
-    try
-    {
-        var response = await _httpClient.GetAsync(url);
-        return JsonSerializer.Deserialize<T>(content);
-    }
-    catch (HttpRequestException ex)
-    {
-        Debug.WriteLine($"Network error: {ex.Message}");
-        return default;  // No crash
-    }
-    catch (TaskCanceledException ex)
-    {
-        Debug.WriteLine($"Timeout: {ex.Message}");
-        return default;
-    }
-}
-
-📚 Learning Resources
-
-- MVVM Pattern: https://learn.microsoft.com/en-us/dotnet/maui/
-- EF Core: https://learn.microsoft.com/en-us/ef/core/
-- ASP.NET Core: https://learn.microsoft.com/en-us/aspnet/core/
-- .NET MAUI: https://github.com/dotnet/maui
-- JWT Authentication: https://jwt.io/
-- CommunityToolkit.Mvvm: https://learn.microsoft.com/en-us/dotnet/communitytoolkit/mvvm/
-
-🗺️ Roadmap
-
+Features:
 - [ ] v1.1: Real product images van API
 - [ ] v1.2: Push notifications voor order updates
 - [ ] v1.3: Background sync service
@@ -715,9 +554,17 @@ public async Task<T?> GetAsync<T>(string endpoint)
 - [ ] v1.5: Order rating & review systeem
 - [ ] v2.0: Real-time order tracking met SignalR
 
- Support
+Support
 
 AI conversation logs:
 - https://chatgpt.com/c/6941be9a-0c3c-8325-9139-61eb49ad471a
 - https://chatgpt.com/c/69404b79-7b48-832c-80c1-6b937b394a61
 - https://chatgpt.com/c/6919f1d1-6114-8327-aec2-1e7c3123015c
+
+GDPR Resources:
+- GDPR Tekst: https://eur-lex.europa.eu/eli/reg/2016/679/oj
+- Gegevensbeschermingsautoriteit (BE): https://www.gegevensbeschermingsautoriteit.be/
+- GDPR Checklist: https://gdpr.eu/checklist/
+
+**Made with ❤️ for privacy-conscious sushi lovers**  
+**Licensed under MIT** | **GDPR Compliant** 🔒
